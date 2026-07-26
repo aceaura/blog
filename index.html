@@ -2,75 +2,58 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>aceaura · blog 文档库</title>
-<style>
-  :root{--ink:#1a2332;--mute:#5a6577;--blue:#1a5276;--line:#e3e8ef;--bg:#f6f8fb;--card:#fff;}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;}
-  .wrap{max-width:1060px;margin:0 auto;padding:32px 20px 60px;}
-  header h1{margin:0 0 4px;font-size:26px;color:var(--blue);}
-  header p{margin:0;color:var(--mute);font-size:14px;}
-  .doc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:20px;box-shadow:0 1px 3px rgba(20,30,50,.05);}
-  .doc h2{margin:0 0 2px;font-size:19px;}
-  .doc .meta{color:var(--mute);font-size:13px;margin-bottom:12px;}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
-  .btn{appearance:none;border:1px solid var(--blue);background:var(--blue);color:#fff;padding:7px 14px;border-radius:8px;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block;}
-  .btn.ghost{background:#fff;color:var(--blue);}
-  .btn:hover{opacity:.9}
-  .viewer{margin-top:14px;display:none;}
-  .viewer.open{display:block;}
-  .viewer iframe{width:100%;height:86vh;border:1px solid var(--line);border-radius:8px;background:#525659;}
-  .note{font-size:12px;color:var(--mute);margin-top:8px;}
-  footer{margin-top:34px;text-align:center;color:var(--mute);font-size:13px;}
-  footer a{color:var(--blue);text-decoration:none;}
-  code{background:#eef1f5;padding:1px 6px;border-radius:5px;font-size:12px;}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>界·外 —— 双期合刊</title>
+<meta name="description" content="一份双期合刊的中文技术读物：网关的此岸，账号的彼岸。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mag.css">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>aceaura · blog 文档库</h1>
-    <p>在线阅读 / 下载 PDF 文档 · 由 GitHub Pages 托管</p>
-  </header>
 
-  <div class="doc" id="d1">
-    <h2>📡 AppleTV 网关模式</h2>
-    <div class="meta">教程 · 3 页 · AppleTV 当网关（Stash / Surge）</div>
-    <div class="actions">
-      <button class="btn" onclick="toggle('v1','AppleTV网关模式.pdf',this)">📖 在线阅读</button>
-      <a class="btn ghost" href="viewer.html?file=AppleTV%E7%BD%91%E5%85%B3%E6%A8%A1%E5%BC%8F.pdf" target="_blank" rel="noopener">🔍 PDF.js 阅读器</a>
-      <a class="btn ghost" href="AppleTV%E7%BD%91%E5%85%B3%E6%A8%A1%E5%BC%8F.pdf" download>⬇ 下载</a>
-    </div>
-    <div class="viewer" id="v1"></div>
-    <div class="note">无法显示？点「下载」用本地阅读器打开，或用「PDF.js 阅读器」。</div>
-  </div>
+<aside class="mast-rail" aria-hidden="true"><span>界·外</span><span class="vol">卷一 · 二〇二六年夏</span></aside>
 
-  <div class="doc" id="d2">
-    <h2>🔒 Claude.ai Max 20x 封号审查因素报告</h2>
-    <div class="meta">调研报告 · 4 页 · 2026-07-26 · 按可信度分级 + 避险要点</div>
-    <div class="actions">
-      <button class="btn" onclick="toggle('v2','Claude_Max20x_封号审查因素报告.pdf',this)">📖 在线阅读</button>
-      <a class="btn ghost" href="viewer.html?file=Claude_Max20x_%E5%B0%81%E5%8F%B7%E5%AE%A1%E6%9F%A5%E5%9B%A0%E7%B4%A0%E6%8A%A5%E5%91%8A.pdf" target="_blank" rel="noopener">🔍 PDF.js 阅读器</a>
-      <a class="btn ghost" href="Claude_Max20x_%E5%B0%81%E5%8F%B7%E5%AE%A1%E6%9F%A5%E5%9B%A0%E7%B4%A0%E6%8A%A5%E5%91%8A.pdf" download>⬇ 下载</a>
-    </div>
-    <div class="viewer" id="v2"></div>
-    <div class="note">无法显示？点「下载」用本地阅读器打开，或用「PDF.js 阅读器」。</div>
-  </div>
+<nav class="topbar" aria-label="顶栏">
+  <span class="crumb">界·外　<b>JIE-WAI</b>　·　双期合刊</span>
+  <span class="spacer"></span>
+  <button class="themebtn" onclick="jwToggleTheme()" aria-label="切换深浅色">☾</button>
+</nav>
 
-  <footer>
-    源码仓库 <a href="https://github.com/aceaura/blog" target="_blank" rel="noopener">github.com/aceaura/blog</a><br>
-    直链格式：<code>https://aceaura.github.io/blog/文件名.pdf</code>
-  </footer>
-</div>
-<script>
-function toggle(id, file, btn){
-  var v=document.getElementById(id);
-  if(v.classList.contains('open')){ v.classList.remove('open'); v.innerHTML=''; btn.textContent='📖 在线阅读'; return; }
-  var url='viewer.html?file='+encodeURIComponent(file);
-  v.innerHTML='<iframe src="'+url+'" loading="lazy"></iframe>';
-  v.classList.add('open'); btn.textContent='✕ 收起';
-}
-</script>
+<header class="cover">
+  <p class="kicker">创 刊 号 · 二 〇 二 六 · 七</p>
+  <h1 class="title" aria-label="界外"><span class="ch">界</span><span class="ch">外</span></h1>
+  <p class="sub">网关的此岸，账号的彼岸</p>
+  <p class="meta">一份中文技术读物　·　两则长文　·　纯静态 · 无追踪</p>
+</header>
+
+<main class="toc">
+  <p class="toc-label">本 期 目 录</p>
+
+  <a class="entry" href="appletv.html">
+    <p class="iss">第 壹 期 · 通 道</p>
+    <h2>AppleTV 网关模式</h2>
+    <p class="lede">让电视盒子替你出门：tvOS 接管网关，Stash 与 Surge 两套可落地方案，附旁路由与完整网络参数。</p>
+    <p class="meta"><span>技术教程</span><span>六章</span><span>约 12 分钟</span><span>关键词：网关 · 旁路由 · DNS</span></p>
+    <span class="open">展 卷</span>
+  </a>
+
+  <a class="entry" href="report.html">
+    <p class="iss">第 贰 期 · 边 界</p>
+    <h2>Claude.ai Max 20x 封号审查因素报告</h2>
+    <p class="lede">二十条封号因素，四类归因，三级可信度朱批；另附六条避险要点。给重度用户的一份生存参照。</p>
+    <p class="meta"><span>调研报告</span><span>四章 · 二十条因素</span><span>约 18 分钟</span><span>关键词：反套利 · 支付 · 区域 · 内容</span></p>
+    <span class="open">展 卷</span>
+  </a>
+</main>
+
+<footer class="colophon">
+  <hr class="rule">
+  排印：思源宋 / 思源黑　·　朱批印章装帧<br>
+  正文横排保可读 · 竖排仅作刊饰　·　深浅双色可选<br>
+  界 · 外　JIE-WAI　二〇二六年夏
+</footer>
+
+<script src="mag.js"></script>
 </body>
 </html>

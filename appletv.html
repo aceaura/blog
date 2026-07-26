@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第壹期 · AppleTV 网关模式 —— 界·外</title>
+<meta name="description" content="让 AppleTV 成为全家网关：Stash 与 Surge 两套配置全记录，含旁路由与完整网络参数。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mag.css">
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"></div>
+<aside class="mast-rail" aria-hidden="true"><span>界·外</span><span class="vol">第壹期 · 通道</span></aside>
+
+<nav class="topbar" aria-label="顶栏">
+  <a class="back" href="index.html">← 目录</a>
+  <span class="crumb">第壹期 · AppleTV 网关模式</span>
+  <span class="spacer"></span>
+  <span class="pct">0%</span>
+  <button class="themebtn" onclick="jwToggleTheme()" aria-label="切换深浅色">☾</button>
+</nav>
+
+<header class="issue-cover">
+  <p class="no">第 壹 期 · 通 道</p>
+  <h1>AppleTV<br>网关模式</h1>
+  <p class="tiji">tvOS 可以接管网关，相当于 mac mini 的 iOS 版本——更稳定，更节能，也更安静。</p>
+  <div class="tag-row">
+    <span>技术教程</span><span>六章</span><span>约 12 分钟</span><span>网关 · 旁路由 · DNS</span>
+  </div>
+  <span class="scrollhint" aria-hidden="true">卷 首 ↓</span>
+</header>
+
+<main class="wrap prose dropcap">
+
+<p>macOS 和 iOS（iOS、iPadOS、tvOS）是不同的两个系统，其中区别大家自行体会。个人认为 iOS 处理网关工作更具优势——更稳定，更节能。当然，节能也意味着噪音更小。</p>
+
+<h2><span class="no">〇一</span>先决条件</h2>
+<ul>
+  <li>AppleTV 六代、七代<strong>带网口</strong>版本。不带网口的版本会便宜一些，但是网关功能也被阉割了。</li>
+  <li>个人申请<strong>美区 iCloud</strong> 账号一个。网上买的账号容易封号，到时候后果自负——请自行申请，不会太简单，也不会太难。账号务必设置最高级别验证，把所有能绑定的东西都绑定。简而言之一句话：<em>账号信息越完整，越不容易触发 Apple 敏感的安全机制</em>。这些安全机制对美国佬来说有利无害，对中国人来说有害无利。</li>
+  <li>美区 iCloud 账号上购买 <strong>Stash</strong>。没美国信用卡，用双币信用卡去官网上买充值卡。</li>
+  <li>美区 iCloud 账号上下载 <strong>Surge</strong>，直接跳转使用支付宝支付即可，它绕过了商店支付。</li>
+</ul>
+
+<h2><span class="no">〇二</span>AppleTV 开机部分</h2>
+<ul>
+  <li>语言选择中文；如果你喜欢英语，也可以。</li>
+  <li>地区选择<strong>美国</strong>，和账号的区域一致更保险，防止 Apple 的政策发生变化导致部分功能不能开启。</li>
+  <li>通过 iPhone 或者 iPad 设置这一步<strong>一定要认真做，同步过程一定要做完，不要跳过</strong>——因为 HomeKit 会依赖这个；进去了再做，可能会同步不成功，导致又需要重置设备。先要在 iPhone 或 iPad 的 iCloud 上登录你的美区账号，只要你的账号是安全的，登不登录 iCloud 没什么影响。<em>注意是登录 iCloud，不是仅仅登录 App Store</em>。</li>
+  <li>设置 AppleTV 在哪个房间。房间名直接决定了机器的设备号，也就是路由器上显示的名字，建议认真填写，<strong>起英文名字</strong>——某些路由器可能在设备号上不支持显示中文。</li>
+  <li>下载 1GB 的屏保，这个不影响，看个人喜好。</li>
+</ul>
+
+<h2><span class="no">〇三</span>AppleTV 设置部分</h2>
+<ul>
+  <li>更新系统到最新。有的 AppleTV 操作系统版本过老，网关功能可能会存在不完整或者 BUG，这个<strong>务必更新</strong>。</li>
+  <li>系统更新到最新后，<strong>关闭系统更新</strong>。一是防止 Apple 官方哪一天抽风又想关闭某些网关功能的必要组件；二是更新本身也会导致断网，关掉可增加稳定性。</li>
+  <li>美国账号 iCloud 登录进去之后，<strong>就不要听信某些传言去及时登出</strong>。只要你的账号登录没问题，登出就没必要——要保证这个 AppleTV 的 iTunes、Store 等等各个账号全部一致。不一致可能会触发 Apple 的隐形规则，导致关闭部分网关功能所依赖的服务。</li>
+  <li>选择「通用 → 睡眠前闲置」改成<strong>永不</strong>，且网络必须<strong>从网口接入</strong>。某些情况下 Wi-Fi 网关甚至可以在睡眠和关机下使用，不过还是劝你不要去趟这个坑：一是 Wi-Fi 信号的握手速度比网线慢，二是 Wi-Fi 自身带宽比有线低，三是 Wi-Fi 网关在睡眠和关机下使用的设计目的不明确。如果你担心 AppleTV 的寿命，大可不必——一是接管网关既然能生效，就不是真的睡眠或关机；二是想多用几年可以买个新的 AppleTV，而且电视盒子这种产品线本身就是要适应长期不关机的场景的，一般来说十年应该不成问题。</li>
+  <li>网络 IP 从自动改成<strong>手动</strong>：IP / 掩码 / 路由器 / DNS 四个地址，全部点「完成」就行，不要有多余的操作。</li>
+  <li>「自动更新 App」要设置成<strong>关掉</strong>——既然稳定了，就不要再更新。</li>
+  <li>「通用 → 后台 App 刷新」<strong>打开</strong>。</li>
+</ul>
+
+<h2><span class="no">〇四</span>Stash 网关</h2>
+<ul>
+  <li>iPhone 上下载 Stash，配置好代理的订阅。</li>
+  <li>在 AppleTV 上下载 Stash，使用 iCloud 同步配置过去。</li>
+  <li>Stash「设置 → 按需连接 → 自动启动」打开。</li>
+  <li>不要其他设置，<em>管住手</em>。</li>
+  <li>被接管设备网络：<strong>自动改手动</strong>。配置举例如下。</li>
+</ul>
+
+<div class="paramcard">
+  <div class="pc-head"><span class="spec">SPEC-01</span><span>被接管设备 · Stash 组网</span><button class="copybtn" type="button">复制</button></div>
+  <pre><span class="k">IP      </span>192.168.3.133    <span class="k"># 本机当前 IP</span>
+<span class="k">Mask    </span>255.255.255.0    <span class="k"># 路由器掩码</span>
+<span class="k">Gateway </span>192.168.3.200    <span class="k"># AppleTV 当前 IP</span>
+<span class="k">DNS     </span>192.168.3.200    <span class="k"># AppleTV 当前 IP</span></pre>
+</div>
+
+<h2><span class="no">〇五</span>Surge 网关</h2>
+<ul>
+  <li>AppleTV 上下载 Surge。</li>
+  <li>iPhone 上下载 Surge，配置好代理的订阅。</li>
+  <li>iPhone 上点击「更多 → Surge tvOS → 你的 AppleTV → 在后台自动部署」，这个设置打开。</li>
+  <li>iPhone 上选择应用模块，Router.com 和 HomeKit 都可以选择打开。</li>
+  <li>iPhone 上选择「Ponte → Proxy NAT Traversal」。某些网络情况下，选择其他选项可能导致无法连接。</li>
+  <li>iPhone 上选择「Ponte → 设备名」，设置成和 AppleTV 的房间名一样，方便记忆。</li>
+  <li>iPhone 上选择「始终开启」，打开。</li>
+  <li>iPhone 上点击「配置部署」。</li>
+  <li>AppleTV 上点击开关打开 Surge。右边 PONTE 不正常就多开关几次，直到显示「通过代理访问」。</li>
+  <li>iPhone 上为 AppleTV 创建手机桌面图标，方便以后操作。</li>
+  <li>无需设置自启——开启必然自启。</li>
+  <li>被接管设备网络：<strong>自动改手动</strong>。配置举例如下。</li>
+</ul>
+
+<div class="paramcard">
+  <div class="pc-head"><span class="spec">SPEC-02</span><span>被接管设备 · Surge 组网</span><button class="copybtn" type="button">复制</button></div>
+  <pre><span class="k">IP      </span>192.168.3.133    <span class="k"># 本机当前 IP</span>
+<span class="k">Mask    </span>255.255.255.0    <span class="k"># 路由器掩码</span>
+<span class="k">Gateway </span>192.168.3.200    <span class="k"># AppleTV 当前 IP</span>
+<span class="k">DNS     </span>198.18.0.2       <span class="k"># Hard Code DNS，参见官方文档</span></pre>
+</div>
+
+<h2><span class="no">〇六</span>旁路由的多种方式</h2>
+<p>旁路由的教学贴网上有很多，可以自行搜索。两套方案的核心都在于：让 AppleTV 常驻、稳定地接管家庭网络的出口，而被接管的设备只需把网关与 DNS 指向它即可。</p>
+
+<nav class="endnav" aria-label="篇末导航">
+  <p class="fin">— 本 期 完 —</p>
+  <div class="row">
+    <a href="index.html"><span class="lbl">回 到</span>目录 · 界·外</a>
+    <a href="report.html" style="text-align:right"><span class="lbl">转 下 期</span>Claude.ai Max 20x 封号审查因素报告 →</a>
+  </div>
+</nav>
+</main>
+
+<footer class="pagefoot">
+  <hr class="rule">
+  界 · 外　JIE-WAI　·　第壹期 · 通道<br>
+  思源宋排印 · 配置以标本卡装帧 · 纯静态无追踪
+</footer>
+
+<script src="mag.js"></script>
+</body>
+</html>

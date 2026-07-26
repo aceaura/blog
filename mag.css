@@ -1,0 +1,333 @@
+/* ============================================================
+   界·外 JIE-WAI —— 双期合刊 · 杂志级中文阅读站
+   设计系统：浅色(宣纸)为主 + 独立校准暗色(玄墨)，朱批印章为签名。
+   可读性为最高优先级：思源宋正文 / 28-30字行长 / 行高1.9 / 两端对齐。
+   ============================================================ */
+
+/* ---------- 设计令牌 ---------- */
+:root{
+  /* 浅色（主模式） */
+  --bg:            #F2EEE3;  /* 宣纸 / 月白 */
+  --bg-deep:       #EAE4D4;  /* 代码卡 / 抬升面 */
+  --ink:           #1E1E24;  /* 玄墨 正文 */
+  --ink-soft:      #3A3A42;  /* 段落次级墨 */
+  --cinnabar:      #C0362C;  /* 朱砂 唯一强调 */
+  --cinnabar-deep: #9c2b1f;  /* 印章实底 */
+  --dai:           #5B5B66;  /* 黛灰 次级 */
+  --stone:         #8A7F6A;  /* 赭石灰 线 */
+  --line:          #D8D2C2;  /* 发丝线 */
+  --card:          #FBF8F0;  /* 目录卡纸面 */
+  --verdigris:     #4E6B4A;  /* 铜绿（仅官方章辅助） */
+
+  --font-serif:"Noto Serif SC","Source Han Serif SC","思源宋体","Songti SC","STSong","STZhongsong","SimSun","NSimSun",serif;
+  --font-sans:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Microsoft YaHei","微软雅黑",sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,"JetBrains Mono","Courier New",monospace;
+
+  --measure:30em;   /* 正文版心：中文 28–30 字甜点 */
+  --lh-body:1.9;
+}
+/* 暗色（独立校准，非简单反色）；加权压过 :root */
+html[data-theme="dark"] body{
+  --bg:            #17181C;
+  --bg-deep:       #201f24;
+  --ink:           #E8E4D8;
+  --ink-soft:      #C4BFB2;
+  --cinnabar:      #D5493C;  /* 朱砂提亮 */
+  --cinnabar-deep: #b23a2e;
+  --dai:           #9a94a6;
+  --stone:         #565060;
+  --line:          #34323c;
+  --card:          #1f1e24;
+  --verdigris:     #7E9B76;
+}
+
+/* ---------- 基础 ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-serif);
+  font-size:17px;
+  line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img{max-width:100%}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--cinnabar);outline-offset:2px;border-radius:2px}
+
+/* ---------- 页顶：进度线 + 顶栏 ---------- */
+.progress{position:fixed;top:0;left:0;height:3px;width:100%;background:var(--cinnabar);
+  transform:scaleX(0);transform-origin:0 50%;z-index:60}
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:1rem;
+  padding:.7rem 1.2rem;
+  background:color-mix(in srgb,var(--bg) 88%,rgb(0 0 0/0));
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  font-family:var(--font-sans);font-size:.82rem;letter-spacing:.06em;
+}
+.topbar a{text-decoration:none}
+.topbar .back{color:var(--dai)}
+.topbar .back:hover{color:var(--cinnabar)}
+.topbar .crumb{color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .spacer{flex:1}
+.topbar .pct{color:var(--dai);font-variant-numeric:tabular-nums;min-width:3em;text-align:right}
+.themebtn{
+  border:1px solid var(--line);background:transparent;color:var(--ink-soft);
+  font-family:var(--font-sans);font-size:.85rem;cursor:pointer;
+  width:2.1rem;height:2.1rem;border-radius:50%;display:grid;place-items:center;
+}
+.themebtn:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+
+/* ---------- 刊物骨架：竖排刊名边栏（仅桌面、短装饰文本） ---------- */
+.mast-rail{
+  display:none;
+  position:fixed;left:0;top:0;bottom:0;width:3.4rem;z-index:40;
+  writing-mode:vertical-rl;text-orientation:upright;
+  font-family:var(--font-serif);font-weight:900;letter-spacing:.5em;
+  color:var(--stone);font-size:.95rem;
+  align-items:center;justify-content:center;gap:1.2rem;
+  border-right:1px solid var(--line);background:var(--bg);
+  padding:2rem 0;
+}
+.mast-rail .vol{font-weight:400;font-size:.7rem;color:var(--dai);letter-spacing:.3em}
+@media(min-width:1200px){.mast-rail{display:flex}}
+@media(min-width:1200px){body{padding-left:3.4rem}}
+
+/* ---------- 版心容器 ---------- */
+.wrap{max-width:var(--measure);margin:0 auto;padding:0 1.2rem}
+
+/* ============================================================
+   首页（目录）
+   ============================================================ */
+.cover{min-height:78vh;display:flex;flex-direction:column;justify-content:center;
+  padding:4rem 1.2rem 2rem;text-align:center}
+.cover .kicker{font-family:var(--font-sans);font-size:.8rem;letter-spacing:.5em;
+  color:var(--dai);text-transform:uppercase}
+.cover .title{
+  font-weight:900;line-height:1.04;margin:.2em 0 .1em;
+  font-size:clamp(4.5rem,17vw,15rem);letter-spacing:.06em;
+  display:flex;justify-content:center;gap:.08em;
+}
+.cover .title .ch{display:inline-block}
+.cover .sub{font-size:clamp(.95rem,2.4vw,1.25rem);color:var(--ink-soft);
+  letter-spacing:.2em;margin-top:.4em}
+.cover .sub::before,.cover .sub::after{content:"——";color:var(--stone);letter-spacing:0}
+.cover .meta{margin-top:2.2rem;font-family:var(--font-sans);font-size:.78rem;
+  color:var(--dai);letter-spacing:.2em}
+
+.toc{padding:1rem 1.2rem 4rem;display:flex;flex-direction:column;gap:2.4rem}
+.toc-label{font-family:var(--font-sans);font-size:.8rem;letter-spacing:.4em;
+  color:var(--dai);text-align:center;margin-bottom:.4rem}
+.entry{
+  display:block;text-decoration:none;background:var(--card);
+  border:1px solid var(--line);border-left:5px solid var(--cinnabar);
+  padding:1.6rem 1.8rem 1.4rem;position:relative;
+  transition:border-color .2s ease,transform .2s ease;
+}
+.entry:hover{border-left-color:var(--cinnabar-deep);transform:translateX(4px)}
+.entry .iss{font-family:var(--font-sans);font-size:.75rem;letter-spacing:.35em;
+  color:var(--cinnabar);margin-bottom:.5rem}
+.entry h2{font-size:clamp(1.4rem,3.4vw,2rem);font-weight:900;margin:.1em 0 .3em;letter-spacing:.02em}
+.entry .lede{color:var(--ink-soft);font-size:.95rem;margin:0 0 .9rem;line-height:1.8}
+.entry .meta{display:flex;flex-wrap:wrap;gap:.4em 1.2em;font-family:var(--font-sans);
+  font-size:.78rem;color:var(--dai);letter-spacing:.05em}
+.entry .open{position:absolute;right:1.4rem;bottom:1.2rem;font-family:var(--font-sans);
+  font-size:.85rem;color:var(--cinnabar);letter-spacing:.1em}
+.entry .open::after{content:" →";transition:margin .2s ease}
+.entry:hover .open::after{margin-left:.3em}
+
+.colophon{padding:2rem 1.2rem 4rem;text-align:center;font-family:var(--font-sans);
+  font-size:.75rem;color:var(--dai);letter-spacing:.15em;line-height:2}
+.colophon .rule{width:3rem;border:none;border-top:1px solid var(--stone);margin:0 auto 1.4rem}
+
+/* ============================================================
+   阅读页
+   ============================================================ */
+/* 期封面 */
+.issue-cover{min-height:70vh;display:flex;flex-direction:column;justify-content:center;
+  padding:4rem 1.2rem 3rem;border-bottom:1px solid var(--line);position:relative}
+.issue-cover .no{font-family:var(--font-sans);font-size:.8rem;letter-spacing:.5em;color:var(--cinnabar)}
+.issue-cover h1{font-size:clamp(2.2rem,6vw,4rem);font-weight:900;line-height:1.12;
+  letter-spacing:.02em;margin:.4em 0 .3em}
+.issue-cover .tiji{color:var(--ink-soft);font-size:1.05rem;letter-spacing:.05em;max-width:22em}
+.issue-cover .tag-row{margin-top:2rem;display:flex;flex-wrap:wrap;gap:.5em 1.4em;
+  font-family:var(--font-sans);font-size:.8rem;color:var(--dai);letter-spacing:.05em}
+.issue-cover .scrollhint{position:absolute;bottom:1.4rem;left:50%;transform:translateX(-50%);
+  font-family:var(--font-sans);font-size:.75rem;color:var(--stone);letter-spacing:.3em;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+
+/* 正文流 */
+.prose{padding:2.5rem 0 3rem}
+.prose p{
+  margin:0 0 1.2em;color:var(--ink-soft);
+  text-align:justify;text-justify:inter-ideograph;
+  hanging-punctuation:first allow-end;
+}
+.prose strong{color:var(--ink);font-weight:700}
+.prose em{font-style:normal;color:var(--cinnabar)}
+.prose a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--stone);
+  text-underline-offset:3px}
+.prose a:hover{color:var(--cinnabar);text-decoration-color:var(--cinnabar)}
+
+/* 首字下沉（每篇首段，一次性杂志信号；窄屏关） */
+.dropcap>p:first-of-type::first-letter{
+  float:left;font-weight:900;color:var(--cinnabar);
+  font-size:3.2em;line-height:.95;padding:.06em .12em 0 0;
+}
+
+/* 章节 */
+.prose h2{
+  font-size:1.55rem;font-weight:900;letter-spacing:.02em;
+  margin:2.2em 0 .9em;padding-top:1rem;position:relative;
+  display:flex;align-items:baseline;gap:.5em;
+}
+.prose h2 .no{font-family:var(--font-sans);font-weight:700;color:var(--cinnabar);
+  font-size:.9em;letter-spacing:.05em}
+.prose h2::after{content:"";position:absolute;left:0;bottom:-.45em;height:2px;width:2.4em;
+  background:var(--cinnabar);transform:scaleX(0);transform-origin:0 50%;transition:transform .5s ease}
+.prose h2.inview::after{transform:scaleX(1)}
+.prose h3{font-size:1.18rem;font-weight:700;margin:1.8em 0 .7em;letter-spacing:.02em}
+.prose h4{font-size:1.02rem;font-weight:700;margin:1.5em 0 .5em}
+
+/* 列表 */
+.prose ul,.prose ol{margin:0 0 1.3em;padding-left:1.5em;color:var(--ink-soft)}
+.prose li{margin-bottom:.55em;text-align:justify;text-justify:inter-ideograph}
+.prose li::marker{color:var(--cinnabar);font-weight:700}
+.prose ul li::marker{content:"◆  ";font-size:.7em}
+
+/* 引用 / 批注折页 */
+.prose blockquote{
+  margin:1.4em 0;padding:.9em 1.1em;color:var(--ink-soft);
+  border-top:1px solid var(--cinnabar);border-bottom:1px solid var(--cinnabar);
+  background:transparent;font-size:.95rem;line-height:1.85;
+}
+.prose blockquote p{margin:0 0 .6em}
+.prose blockquote p:last-child{margin-bottom:0}
+
+/* 行内代码 */
+.prose code{font-family:var(--font-mono);font-size:.86em;background:var(--bg-deep);
+  padding:.1em .35em;border-radius:3px;color:var(--ink)}
+
+/* 配置 / 参数卡（AppleTV 的 IP/Mask/Gateway/DNS） */
+.paramcard{
+  margin:1.4em 0;background:var(--bg-deep);border-left:4px solid var(--cinnabar);
+  overflow:hidden;
+}
+.paramcard .pc-head{
+  display:flex;align-items:center;gap:.8em;
+  padding:.5em 1em;border-bottom:1px solid var(--line);
+  font-family:var(--font-sans);font-size:.72rem;letter-spacing:.15em;color:var(--dai);
+}
+.paramcard .pc-head .spec{color:var(--cinnabar);font-weight:700}
+.paramcard .pc-head .copybtn{
+  margin-left:auto;border:1px solid var(--line);background:transparent;color:var(--ink-soft);
+  font-family:var(--font-sans);font-size:.72rem;cursor:pointer;padding:.15em .7em;border-radius:3px;
+}
+.paramcard .pc-head .copybtn:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.paramcard pre{margin:0;padding:1em 1.2em;overflow-x:auto;font-family:var(--font-mono);
+  font-size:.85rem;line-height:1.8;color:var(--ink)}
+.paramcard pre .k{color:var(--dai)}
+
+/* 表格（出版物三线表，横滑不缩字号） */
+.tablewrap{overflow-x:auto;margin:1.5em 0;border-top:2px solid var(--ink);
+  border-bottom:2px solid var(--ink)}
+.tablewrap .cap{display:block;font-family:var(--font-sans);font-size:.78rem;color:var(--dai);
+  letter-spacing:.1em;padding:.5em 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.prose table{border-collapse:collapse;width:100%;min-width:34em;
+  font-family:var(--font-sans);font-size:.85rem;line-height:1.6}
+.prose thead th{
+  text-align:left;font-weight:700;color:var(--ink);padding:.6em .8em;
+  border-bottom:1.5px solid var(--ink);white-space:nowrap;letter-spacing:.03em;
+}
+.prose tbody td{padding:.55em .8em;border-bottom:1px solid var(--line);
+  color:var(--ink-soft);vertical-align:top}
+.prose tbody tr:nth-child(even){background:color-mix(in srgb,var(--bg-deep) 55%,rgb(0 0 0/0))}
+.prose tbody tr:last-child td{border-bottom:none}
+
+/* ---------- 朱批印章（可信度三级）—— 签名元素 ---------- */
+.seal{
+  display:inline-flex;align-items:center;gap:.35em;
+  font-family:var(--font-sans);font-size:.68rem;font-weight:700;letter-spacing:.12em;
+  padding:.12em .55em;margin-left:.5em;vertical-align:.12em;white-space:nowrap;
+  transform:rotate(-2deg);border-radius:2px;line-height:1.6;
+}
+.seal::before{content:"";width:.5em;height:.5em;flex:none}
+.seal.s-official{background:var(--cinnabar-deep);color:#f6efe6;box-shadow:0 0 0 1px var(--cinnabar-deep)}
+.seal.s-official::before{background:#f6efe6}
+.seal.s-multi{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.seal.s-multi::before{background:var(--cinnabar)}
+.seal.s-rumor{background:transparent;color:var(--dai);box-shadow:inset 0 0 0 1.5px var(--dai);
+  border:1px dashed var(--dai);box-shadow:none}
+.seal.s-rumor::before{background:transparent;border:1px dashed var(--dai)}
+
+/* 因素卡（B 篇） */
+.factor{
+  display:block;margin:1.3em 0;padding:1.1em 1.2em 1em;background:var(--card);
+  border:1px solid var(--line);border-top:3px solid var(--cinnabar);position:relative;
+}
+.factor .fhead{display:flex;align-items:baseline;gap:.6em;flex-wrap:wrap;margin-bottom:.4em}
+.factor .fnum{font-family:var(--font-sans);font-weight:700;color:var(--cinnabar);
+  font-size:.8rem;letter-spacing:.1em}
+.factor .ftitle{font-weight:700;font-size:1.05rem;color:var(--ink)}
+.factor .seal{margin-left:auto}
+.factor p{margin:.5em 0 0;font-size:.95rem}
+
+/* 避险清单（B 篇） */
+.avoid{counter-reset:av;list-style:none;padding-left:0;margin:1.4em 0}
+.avoid li{counter-increment:av;position:relative;padding:.6em 0 .6em 3.4em;
+  border-bottom:1px solid var(--line);margin-bottom:0}
+.avoid li:last-child{border-bottom:none}
+.avoid li::before{
+  content:counter(av,decimal-leading-zero);position:absolute;left:0;top:.55em;
+  font-family:var(--font-sans);font-weight:900;color:var(--cinnabar);font-size:1.5rem;line-height:1;
+}
+.avoid li strong{color:var(--ink)}
+
+/* 脚注区 */
+.footnotes{margin-top:2.5em;padding-top:1.2em;border-top:1px solid var(--line);
+  font-family:var(--font-sans);font-size:.82rem;color:var(--dai);line-height:1.9}
+.footnotes ol{padding-left:1.3em}
+.footnotes li{margin-bottom:.3em;text-align:left}
+sup.fn{font-family:var(--font-sans);font-size:.7em}
+sup.fn a{color:var(--cinnabar);text-decoration:none;padding:0 .1em}
+
+/* 篇末导航 */
+.endnav{margin-top:3em;padding-top:2em;border-top:2px solid var(--ink);
+  display:flex;flex-direction:column;gap:1rem;font-family:var(--font-sans)}
+.endnav .fin{text-align:center;font-family:var(--font-serif);color:var(--dai);
+  letter-spacing:.4em;font-size:.85rem;margin-bottom:1rem}
+.endnav .row{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.endnav a{text-decoration:none;color:var(--ink-soft);font-size:.9rem;letter-spacing:.05em}
+.endnav a:hover{color:var(--cinnabar)}
+.endnav a .lbl{display:block;font-size:.7rem;color:var(--dai);letter-spacing:.2em}
+
+/* 页脚刊例 */
+.pagefoot{padding:2.5rem 1.2rem 3.5rem;text-align:center;font-family:var(--font-sans);
+  font-size:.74rem;color:var(--dai);letter-spacing:.12em;line-height:2.1}
+.pagefoot .rule{width:3rem;border:none;border-top:1px solid var(--stone);margin:0 auto 1.3rem}
+
+/* ---------- 窄屏适配 ---------- */
+@media(max-width:1100px){
+  .prose table{min-width:30em}
+}
+@media(max-width:720px){
+  body{font-size:16px}
+  .dropcap>p:first-of-type::first-letter{float:none;font-size:inherit;color:inherit;padding:0;font-weight:inherit}
+  .prose h2{font-size:1.3rem}
+  .cover .title{letter-spacing:.02em}
+  .issue-cover{min-height:60vh}
+  .topbar .pct{display:none}
+  .factor .seal{margin-left:0}
+}
+/* 无 webfont 降级微调 */
+html.no-webfont body{letter-spacing:0}
+html.no-webfont .prose p{line-height:1.85}

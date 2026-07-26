@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第贰期 · Claude.ai Max 20x 封号审查因素报告 —— 界·外</title>
+<meta name="description" content="二十条封号因素，四类归因，三级可信度朱批；另附六条避险要点。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mag.css">
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"></div>
+<aside class="mast-rail" aria-hidden="true"><span>界·外</span><span class="vol">第贰期 · 边界</span></aside>
+
+<nav class="topbar" aria-label="顶栏">
+  <a class="back" href="index.html">← 目录</a>
+  <span class="crumb">第贰期 · Max 20x 封号审查因素报告</span>
+  <span class="spacer"></span>
+  <span class="pct">0%</span>
+  <button class="themebtn" onclick="jwToggleTheme()" aria-label="切换深浅色">☾</button>
+</nav>
+
+<header class="issue-cover">
+  <p class="no">第 贰 期 · 边 界</p>
+  <h1>Claude.ai Max 20x<br>封号审查因素报告</h1>
+  <p class="tiji">重度使用只会被限流，不是封号——封号挂在「使用方式」上。二十条因素，四类归因，三级可信度。</p>
+  <div class="tag-row">
+    <span>调研报告</span><span>四章 · 二十条因素</span><span>约 18 分钟</span><span>2026-07-26</span>
+  </div>
+  <div class="tag-row" role="doc-tip" aria-label="可信度图例">
+    <span><span class="seal s-official">官方</span> Anthropic 文档/员工表态</span>
+    <span><span class="seal s-multi">多源</span> 多方独立互证</span>
+    <span><span class="seal s-rumor">传闻</span> 单一来源/软文</span>
+  </div>
+  <span class="scrollhint" aria-hidden="true">卷 首 ↓</span>
+</header>
+
+<main class="wrap prose dropcap">
+
+<p><strong>生成日期</strong> 2026-07-26 · <strong>调研方式</strong> 15 个并行 Agent 全网搜索（140 条原始发现）· <strong>面向</strong> Max 20x（$200/月）重度 Claude Code 用户。</p>
+
+<blockquote>
+<p><strong>取证边界</strong>：本机 WebFetch 被策略拦截，所有结论来自搜索快照（snippet）与二手转述，正文未能逐字核对。可信度分三级——</p>
+<p><span class="seal s-official">官方</span> Anthropic 文档 / 员工公开表态　<span class="seal s-multi">多源</span> 多个独立用户报告 / 媒体 / GitHub issue 互证　<span class="seal s-rumor">传闻</span> 单一来源或有商业动机的软文</p>
+</blockquote>
+
+<h2><span class="no">〇一</span>最核心结论：封号分两条独立轨道</h2>
+<p>很多人把「撞到周限额被限流」误当成「封号」。<strong>Max 20x 重度使用本身只会被限流（throttle），不是封号</strong>——封号挂在<em>使用方式</em>上（第三方工具 / 共享 / 转售 / 区域 / 支付信号），而不是用量大。</p>
+
+<div class="tablewrap">
+  <span class="cap">〔表一〕两条独立轨道</span>
+  <table>
+    <thead><tr><th>轨道</th><th>性质</th><th>后果</th><th>可否恢复</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Token 级封锁</strong></td><td>订阅 OAuth token 在非官方客户端被服务器拒收（2026-01-09 起）</td><td>账号没被封，只是该凭证在官方 Claude Code 之外失效</td><td>换回官方客户端即恢复</td></tr>
+      <tr><td><strong>账号级封禁</strong></td><td>“suspicious signals” 滥用分类器判定的封号</td><td>账号被禁用，余额不退</td><td>需申诉，翻盘率仅 ~3.3%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2><span class="no">〇二</span>封号审查因素（按相关度排序）</h2>
+
+<h3>A · 反套利类 —— Max 20x 用户真正的雷区（官方主动严打）</h3>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-01</span><span class="ftitle">把订阅 OAuth token 用到任何非官方客户端</span><span class="seal s-official">官方</span></div>
+  <p>2026 年最大一波、最高发。官方明文：“Using OAuth tokens obtained through Claude Free, Pro, or Max accounts in any other product, tool, or service — <strong>including the Agent SDK</strong> — is not permitted.” 连 Anthropic 自家 Agent SDK 都算违规。波及 OpenClaw/Clawdbot、OpenCode、Cline、Roo Code、deer-flow 及各类 <code>claude setup-token</code> / <code>CLAUDE_CODE_OAUTH_TOKEN</code> 导出桥。时间线：2026-01-09 服务器静默封锁 → 2/17-20 写入 ToS → 4/4 全面计费切割。</p>
+  <p><strong>检测方式</strong><span class="seal s-multi">多源</span>：不靠 UA/TLS/client-id（可伪造），而是分析<strong>请求载荷</strong>——系统提示结构 + tool schema 形状，识别是否真·Claude Code。</p>
+</div>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-02</span><span class="ftitle">账号共享 / 转售 / 拼车</span><span class="seal s-official">官方</span></div>
+  <p>Anthropic 明说周限额就是为打击 “account sharing and reselling”。Max 5x/20x 是单用户套餐；一份订阅多人/团队用、或拆分转售（中文圈「拼车/合租」，Max 20x 黑产 3-7 折拆卖）= 直接违规。</p>
+</div>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-03</span><span class="ftitle">把订阅当 API 跑自动化（token 套利）</span><span class="seal s-official">官方</span></div>
+  <p>ToS §3.7 禁止 “automated or non-human means” 访问（除非走 API key）。平面费率套餐被 agent harness 7×24 跑，$200 订阅烧掉 $1,000–$5,000 等价算力。→ 2026-06-15 起这类用量被切到独立 “Agent SDK credit” 池按 API 价计费，替代了过去「连额度一起封」的做法。</p>
+</div>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-04</span><span class="ftitle">headless <code>claude -p</code> / CI/CD / 后台守护挂在订阅上</span><span class="seal s-official">官方</span></div>
+  <p>GitHub Actions、批处理、无人值守自动化走订阅 OAuth 属违规。</p>
+</div>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-05</span><span class="ftitle">多账号绕过限额（limit-hopping）/ 封后开新号</span><span class="seal s-multi">多源</span></div>
+  <p>⚠️<strong>矛盾点</strong>：Anthropic 员工 Thariq Shihipar 明说「持有多个 Max 账号本身<strong>不</strong>违规」，但分类器仍反复误封多账号用户。真正的违规是<strong>用多账号轮换绕限额</strong>和<strong>封后重注册</strong>。检测靠支付卡/IP/设备指纹做关联（连坐）。</p>
+</div>
+
+<h3>B · 支付 / 账单风险信号（常在「充值/升级瞬间」触发复审）</h3>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-06</span><span class="ftitle">代充 / 第三方充值（recharge / top-up）</span><span class="seal s-multi">多源</span></div>
+  <p>中文圈列为「几乎必封」档：付款人身份与账号持有人永远对不上，欺诈检测必标记。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-07</span><span class="ftitle">高风险 / 虚拟 / 预付卡</span><span class="seal s-multi">多源</span></div>
+  <p>卡 BIN 国 ≠ 账单国 ≠ IP 国时触发；Stripe 风控可致即时封。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-08</span><span class="ftitle">拒付 / chargeback</span><span class="seal s-official">官方</span></div>
+  <p>争议处理期间无法退款，且判例显示会导致卡+身份被永久拉黑（#47046）。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-09</span><span class="ftitle">低价区套利 / 区域不一致</span><span class="seal s-multi">多源</span></div>
+  <p>VPN 去尼日利亚/土耳其/阿根廷等低价区订阅；中文「防封」指南强调 IP国=手机国=邮箱区=卡账单地「四位一体」。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-10</span><span class="ftitle">大额 / 快速升级事件</span><span class="seal s-multi">多源</span></div>
+  <p>多起「升级 Max 20x 后几秒到几小时被封」（#37057/#60923/#45936）；付款事件似乎会触发对账号历史的全面复审。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-11</span><span class="ftitle">礼品订阅 / 赠送 Max</span><span class="seal s-multi">多源</span></div>
+  <p>兑换礼品即被封的边缘案例簇（#41252/#45335），礼品/兑换流撞上自动复审 + Stripe 折算边缘。</p>
+</div>
+
+<h3>C · 网络 / 区域 / 设备信号</h3>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-12</span><span class="ftitle">从不支持 / 受制裁区域访问</span><span class="seal s-official">官方</span></div>
+  <p>中国大陆、香港、澳门、俄、白俄、伊朗、朝、古、克里米亚等；2025-09 起还禁中国控股 &gt;50% 的实体。⚠️<strong>对位于中国的用户是系统性高危</strong>。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-13</span><span class="ftitle">VPN / 代理「坏邻居」IP 连坐</span><span class="seal s-multi">多源</span></div>
+  <p>商业 VPN 出口（ProtonVPN/NordVPN 被点名）被预标记；同 IP 别人违规你遭殃。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-14</span><span class="ftitle">数据中心 / VPS IP vs 住宅 IP</span><span class="seal s-multi">多源</span></div>
+  <p>AWS/Azure/Hetzner 段被当「非人类」。⚠️矛盾点：固定 VPS IP 的稳定用户反而比频繁换 VPN 的少被封——<strong>IP 一致性/信誉 &gt; 是否数据中心</strong>。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-15</span><span class="ftitle">「不可能的旅行」</span><span class="seal s-multi">多源</span></div>
+  <p>几分钟内跨国跳 IP，立即触发反滥用告警。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-16</span><span class="ftitle">设备 / 浏览器指纹 + Cookie 多账号关联</span><span class="seal s-rumor">传闻</span></div>
+  <p>来源多是指纹浏览器厂商软文，可信度打折。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-17</span><span class="ftitle">中国用户专项环境检测（已承认并移除）</span><span class="seal s-official">官方</span></div>
+  <p>最硬的实测信号。Claude Code v2.1.91–196 会读<strong>系统时区</strong>（Asia/Shanghai、Urumqi）、比对代理域名里的中国云/AI 实验室关键词（百度/阿里/字节/deepseek/moonshot…），并用<strong>隐写术</strong>（把撇号 U+0027 换成视觉相同的 U+2019 等）把 3-bit 标记藏进系统提示回传。Anthropic 承认为「反代充/反蒸馏实验」，v2.1.197（7/1）移除。⚠️这意味着<strong>身处中国的正常 Max 用户即使 IP 干净也风险偏高</strong>（判据是时区+中转域名，非 IP 段，「杭州 IP 段」说法已被证伪）。</p>
+</div>
+
+<h3>D · 使用政策 / 内容违规（对纯编码用户基本不相关，但确实存在）</h3>
+
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-18</span><span class="ftitle">AUP 三层结构（通用 / 高危 / 硬性禁止）</span><span class="seal s-official">官方</span></div>
+  <p>硬性禁止含 CSAM、恶意软件、欺诈、武器、选举行贿等，触即封；2025-09 更新细化网络安全禁令（勒索软件/EDR绕过/C2/数据外泄）。独立分析约 69 类禁止用途。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-19</span><span class="ftitle">未满 18 岁</span><span class="seal s-official">官方</span></div>
+  <p>确认未成年即封；自动分类器扫对话判年龄，误封成年人走 Yoti 年龄验证恢复。</p>
+</div>
+<div class="factor">
+  <div class="fhead"><span class="fnum">F-20</span><span class="ftitle">模型蒸馏 / 竞争性训练</span><span class="seal s-official">官方</span></div>
+  <p>用输出训练竞品模型。旗舰案例：2026-02 披露 MiniMax(~13M)/Moonshot(~3.4M)/DeepSeek(~150K+) 用 ~24,000 假账号蒸馏；6 月又指控阿里 Qwen ~25,000 假账号 28.8M 次交互，升级到国会+出口管制层面。</p>
+</div>
+
+<h2><span class="no">〇三</span>审查 / 执行机制（怎么被抓、怎么申诉）</h2>
+
+<div class="tablewrap">
+  <span class="cap">〔表二〕审查与执行机制</span>
+  <table>
+    <thead><tr><th>环节</th><th>可信度</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>执行阶梯</strong></td><td><span class="seal s-official">官方</span></td><td>警告 → 累计阈值 → 暂停 → 终止。但对消费者常无预警直接封。</td></tr>
+      <tr><td><strong>检测</strong></td><td><span class="seal s-official">官方</span><span class="seal s-multi">多源</span></td><td>AI 分类器扫内容 + CSAM 哈希比对 + 跨账号关联调查 + 实时阻断；绝大多数封禁是自动触发，人工只在申诉或严重案例介入。</td></tr>
+      <tr><td><strong>两条封号文案</strong></td><td><span class="seal s-multi">多源</span></td><td>「suspicious signals associated with the account」= 环境/账号信号分支（VPN/区域/支付/多账号）；「automatic review of your recent activities」= 内容/行为分支。两者都导向同一申诉表。</td></tr>
+      <tr><td><strong>申诉</strong></td><td><span class="seal s-official">官方</span></td><td>claude.ai 用被封账号登录填申诉表；警告异议发 usersafety@anthropic.com。Transparency Hub：2025 下半年封 145 万账号、5.2 万申诉、仅 ~1700 翻盘（≈3.3%）。</td></tr>
+      <tr><td><strong>误封真实存在</strong></td><td><span class="seal s-official">官方</span></td><td>Thariq Shihipar 承认 2026-01 收紧后有 “regular subscription accounts” 被误封并恢复；甚至有自家 VS Code 扩展后台活动（#41046）、自动生成的 claude-bridge 子进程（#47046）把普通用户坑封。</td></tr>
+      <tr><td><strong>身份核验</strong></td><td><span class="seal s-official">官方</span></td><td>2026-07-08 起对部分被标记用户要 ID+自拍（Persona 做 KYC、Yoti 做年龄），不通过=事实封号。</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2><span class="no">〇四</span>给 Max 20x 用户的避险要点</h2>
+<ol class="avoid">
+  <li><strong>只用官方客户端</strong>（Claude Code CLI / claude.ai / 桌面 / Cowork），别把订阅 token 喂给任何第三方——哪怕自家 Agent SDK。</li>
+  <li><strong>一份订阅一个人用</strong>，别拼车别转售别团队共登。</li>
+  <li><strong>自动化 / CI 走 API key 付费</strong>，别挂订阅。</li>
+  <li><strong>别碰代充 / 虚拟卡 / 低价区</strong>，账单信息前后一致，别轻易拒付。</li>
+  <li><strong>身处中国 = 系统性高危</strong>（政策 + 时区/中转检测），这是客观风险不是操作能完全规避的。</li>
+  <li>用量再大也只是被<strong>限流</strong>；但「多 IP 并发 + 异常吞吐 + 信号叠加」会被分类器误判——误封后申诉翻盘率仅 ~3%，所以<strong>前置规避远比事后申诉重要</strong>。</li>
+</ol>
+
+<blockquote>
+<p>本报告由 15 个并行调研 Agent（官方政策 / OAuth-第三方 / 用量滥用 / 支付账单 / VPN-区域 / 社区报告 / 执行机制 / 检测信号 + 完整性批评家 + 6 个补漏方向）汇总而成，去重后按可信度分级。所有结论以 Anthropic 官方文档与实际执行为准。</p>
+</blockquote>
+
+<nav class="endnav" aria-label="篇末导航">
+  <p class="fin">— 本 期 完 · 卷 终 —</p>
+  <div class="row">
+    <a href="appletv.html"><span class="lbl">转 上 期</span>← AppleTV 网关模式</a>
+    <a href="index.html" style="text-align:right"><span class="lbl">回 到</span>目录 · 界·外</a>
+  </div>
+</nav>
+</main>
+
+<footer class="pagefoot">
+  <hr class="rule">
+  界 · 外　JIE-WAI　·　第贰期 · 边界<br>
+  三级可信度朱批装帧 · 结论以官方文档与实际执行为准
+</footer>
+
+<script src="mag.js"></script>
+</body>
+</html>
