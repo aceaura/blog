@@ -91,7 +91,7 @@
 Kiro（AWS 的 AI coding agent）按 **credit（次）** 计费，不按 token，故「有效月 Token」非套餐原生额度，而是用其 credit 公式反推的等价量，无法与上表 token 套餐混排，单列如下。
 
 - 套餐：POWER **$200/月 = ¥1,360**（6.8 汇率），10,000 credits，计划内 $0.02/credit（超额加购 $0.04）。
-- 公式分通道（均为实测反推，M 为官方公开倍率）：Claude 通道 `credits ≈ M × (input_tokens + 15 × output_tokens) / 63,000`；GPT 通道 `credits ≈ M × (1,880 + input_tokens + 30.4 × output_tokens) / 317,400`（2026-08-16 网关实测，分母是 Claude 通道的 5.04 倍）。**口径注**：两分母不是同一把尺子——Claude 通道的 63,000 基于响应报数口径，而响应报数低估真实输入（8k 真实输入只报 3,821，整段低估约 1.9×、各段边际低估至约 3.5×，比例随 payload 漂移）；按真实发送 token 折算，Claude 通道约 19.5–21 万 token/credit，与 GPT 通道差距缩至约 1.6×。即「GPT 比 Claude 便宜 5.04 倍」是计费口径比，按你实际发送的 token 数算差距约 1.6×。Kiro 内缓存命中与普通输入同价计入 input（GPT 通道逐字节重复实测 ratio=1.000000 零折扣）；真实 agent 会话 payload 每轮追加、从不逐字节重复，折扣从不命中（D=1.0）。
+- 公式分通道（均为实测反推，M 为官方公开倍率）：Claude 通道 `credits ≈ M × (input_tokens + 15 × output_tokens) / 63,000`；GPT 通道 `credits ≈ M × (1,880 + input_tokens + 30.4 × output_tokens) / 317,400`（2026-08-16 网关实测，分母是 Claude 通道的 5.04 倍）。**口径注**：两分母不是同一把尺子——Claude 通道的 63,000 基于响应报数口径，而响应报数低估真实输入（8k 真实输入只报 3,821，整段低估约 1.9×、各段边际低估至约 3.5×，比例随 payload 漂移）；按真实发送 token 折算，Claude 通道约 19.5–21 万 token/credit，与 GPT 通道差距缩至约 1.6×。即「GPT 比 Claude 便宜 5.04 倍」是计费口径比，按你实际发送的 token 数算差距约 1.6×。GPT 通道小请求另有额外计量（走 new-api 链路实测：≤1k 输入溢价 20–35%，2k 起收敛到 4–8%；8k 同内容一笔实测 opus-5/sol = 1.79×，印证上述 1.6× 量级）。Kiro 内缓存命中与普通输入同价计入 input（GPT 通道逐字节重复实测 ratio=1.000000 零折扣）；真实 agent 会话 payload 每轮追加、从不逐字节重复，折扣从不命中（D=1.0）。
 - 反推：把 10,000 credits 按本表 89.1% 缓存 / 9.9% 输入 / 1% 输出拆分，反算等价综合 Token（Claude 模型用 63,000 分母、GPT 模型用 317,400 分母与 30.4× 输出权重）。
 
 | 模型 | M 倍率 | 等价综合 Token | 有效 M 单价 | 官方综合按量价 | 实际倍数 |
