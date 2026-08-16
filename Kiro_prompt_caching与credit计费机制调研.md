@@ -143,6 +143,50 @@ credits ≈ M × E × D × (input_tokens + 15 × output_tokens) / 63,000
 
 ---
 
+## 后续验证：官方 multiplier 表与第三方量级印证（2026-08-16）
+
+本文发表后补了一轮网络验证，结论：**M 倍率从「实测反推」升级为「官方公开数据」；`63,000` 这个绝对换算仍无官方口径，但有第三方量级印证。**
+
+### 一、模型倍率是官方公开数据
+
+[官方 models 文档](https://kiro.dev/docs/models/) 给出完整 credit multiplier 表（相对 Auto 1.0x），逐项对照本文的 M 倍率全部命中：
+
+| 模型 | 官方 multiplier | 本文 M | 结论 |
+|---|---:|---:|:--:|
+| Claude Opus 5 / 4.8 / 4.7 / 4.6 / 4.5 | 2.2x | 2.2 | 一致 |
+| Claude Sonnet 5 / 4.6 / 4.5 / 4.0 | 1.3x | 1.3 | 一致 |
+| GPT-5.6 Sol | 2.4x | 2.4 | 一致 |
+| GPT-5.6 Terra | 1.0x | 1.0 | 一致 |
+| GPT-5.6 Luna | 0.1x | 0.1 | 一致 |
+| Auto | 1.0x | 1.0 | 一致 |
+| Haiku 4.5 / DeepSeek 3.2 / GLM-5 / MiniMax M2.5 / M2.1 / Qwen3 | 0.4 / 0.25 / 0.5 / 0.25 / 0.15 / 0.05 | 0.05–0.5 | 一致 |
+
+官方 [GPT-5.6 降价公告](https://kiro.dev/blog/gpt-5-6-pricing/)（2026-07-31）与 [classmethod 实测](https://dev.classmethod.jp/en/articles/kiro-gpt56-terra-luna-credit-price-cut/) 独立确认 Terra 1.2x→1.0x、Luna 0.6x→0.1x。
+
+所以本文的 opus-5=2.2 / sonnet-5=1.3 / Sol=2.4 / Terra=1.0 / Luna=0.1 全部是官方数字，不是反推值。**反推的只有 `63,000` 这个分母。**
+
+### 二、官方故意不公布绝对换算
+
+官方 models 文档明确 credit 是「相对 Auto 1.0x」的相对量，并注明「实际消耗取决于模型生成的 token 数、thinking 深度、tokenizer 差异」。全站没有「1 credit = N token」的官方口径——与本文「按请求不按 token」一致。
+
+### 三、第三方量级印证 63,000
+
+[jishuzhan 实测](https://jishuzhan.net/article/2037135241685565442)：同一任务用 Opus 4.6，Claude Code（官方 API）花 **$0.51**，Kiro 花 **4.18 credits**。反推 4.18 × 63,000/2.2 ≈ 12 万 input token，与 $0.51 ÷ $5/M ≈ 10 万 token 量级吻合（差约 17%）。
+
+反面证据被证伪：某「1 credit ≈ 100–500 token」的博客其套餐价格全错（Power 写成 $99/5000，官方是 $200/10000），弃用。AWS 官方 [agent-cost-bench](https://github.com/aws-samples/sample-agent-cost-bench) 也侧面印证：Kiro 的成本只读 `Credits: X` telemetry 行按 `usd_per_credit` 折算，没有 token 输出。
+
+### 四、修正后的「$200 能跑多少 token」
+
+| 模型 | 10,000 credits 等价 input token |
+|---|---:|
+| Opus 5（2.2x）| ≈ 2.86 亿 |
+| Sonnet 5（1.3x）| ≈ 4.85 亿 |
+| GPT-5.6 Sol（2.4x）| ≈ 2.63 亿 |
+
+诚实边界不变：这仍是「纯 input 等价量」的反推，官方只承诺 $200 = 10,000 credits。真实 agent 会话按 89.1% 缓存 / 9.9% 输入 / 1% 输出的综合口径折算约 2.5 亿综合 token（Opus 5）。
+
+---
+
 ## 与官方 API 定价比较
 
 Kiro 各档位价格：FREE $0 / 50 credits，PRO $20 / 1,000，PRO+ $40 / 2,000，PRO MAX $100 / 5,000，POWER $200 / 10,000。**所有档位都是计划内 $0.02/credit**，超额加购统一 **$0.04/credit**（是计划内的 2 倍，未用完的加购 credit 12 个月后过期）。
