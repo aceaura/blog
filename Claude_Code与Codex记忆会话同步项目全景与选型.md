@@ -73,6 +73,8 @@ handoff 通常只传递当前任务所需的摘要、目标、文件范围、约
 
 [context-mode](https://github.com/mksglu/context-mode) 确有 Claude Code/Codex 两套适配器和同一 SessionDB/SQLite schema；设置 `CONTEXT_MODE_DATA_DIR` 后，两端可以落到同一持久化事件/快照目录。但其默认目录分开，Codex 平台支持仍是 Partial，Codex hook 的 resume 分支不能证明会从其他 session 自动 claim 快照，因此只能判定为“显式配置后的共享持久化后端”，不能宣称自动双向会话同步。
 
+另一个名称相近的 [opencode-claude-code-memory](https://github.com/kuitos/opencode-claude-code-memory) 也不应列入 Claude↔Codex 候选。源码和 npm 包显示它是 OpenCode 插件，按 `~/.claude/projects/<project>/memory` 的文件约定读写 Claude Code Markdown；没有 Codex/OpenAI 适配器、实时监听/同步协议或共享会话后端。它可以归类为 OpenCode 与 Claude Code 记忆文件的共享持久化约定，不能称为实时同步、会话同步或跨 provider 导入导出。
+
 ### 5. 历史查看和导出
 
 viewer 可以读取多个客户端的本地 session、建立索引、搜索、统计、导出，甚至调用原 provider 的 resume 命令。但它通常不会把 Claude session 写成 Codex native session。
@@ -498,6 +500,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [MemoryGraph](https://github.com/memory-graph/memory-graph)
 - [Cloudflare MCP Memory](https://github.com/beach55607-max/mcp-memory-server)
 - [opencode-claude-memory](https://github.com/kuitos/opencode-claude-memory)
+- [opencode-claude-code-memory](https://github.com/kuitos/opencode-claude-code-memory)
 - [context-mode](https://github.com/mksglu/context-mode)
 
 ### 规则、查看器和编排
