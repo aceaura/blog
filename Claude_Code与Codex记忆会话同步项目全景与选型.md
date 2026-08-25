@@ -75,6 +75,26 @@ handoff 通常只传递当前任务所需的摘要、目标、文件范围、约
 
 另一个名称相近的 [opencode-claude-code-memory](https://github.com/kuitos/opencode-claude-code-memory) 也不应列入 Claude↔Codex 候选。源码和 npm 包显示它是 OpenCode 插件，按 `~/.claude/projects/<project>/memory` 的文件约定读写 Claude Code Markdown；没有 Codex/OpenAI 适配器、实时监听/同步协议或共享会话后端。它可以归类为 OpenCode 与 Claude Code 记忆文件的共享持久化约定，不能称为实时同步、会话同步或跨 provider 导入导出。
 
+### 补充案例：memtrace——共享图和决策记忆，非聊天同步
+
+项目：[syncable-dev/memtrace-public](https://github.com/syncable-dev/memtrace-public)
+
+`memtrace` 的 Claude Code 和 Codex 配置可以指向同一 `memtrace mcp`。stdio 子进程可附着同一 workspace owner 和 `.memdb`，streamable-HTTP 也可由多个 session 复用；官方文档还说明多个 repository 可以共享一个 `.memdb` 图。仓库中的 ContextBench Codex runner 会实际生成 `config.toml` 并运行 `codex exec --json`，因此这不是只有 README 的配置声明。
+
+但它共享的是代码图、episodes 和 Cortex 决策记忆，通过 MCP 工具查询；`session-continuity`/`continuous-memory` 是 anchor、增量索引和 watcher 驱动的 agent workflow。没有证据表明它会自动捕获或合并 Claude/Codex 的完整聊天全文、导入导出双方 session，或让一个 provider 的 session 在另一个 provider 中 native resume。源码 watcher 的“实时”只描述文件变化，不是聊天同步。
+
+**判定：部分确认/范围受限。** 它可作为共享持久化代码与结构化决策记忆后端，但不能列入自动 Claude↔Codex 聊天记忆同步器。公开 issue 还记录了 Windows watcher 长时间没有 episode、MCP SIGTERM 无法停止、WAL snapshot 可能导致超大内存分配，以及当前缺少持久 Claude routing directive 等落地风险；采用前应做目标平台端到端测试。
+
+### 补充案例：Memorix——共享项目记忆，非聊天镜像
+
+项目：[AVIDS2/memorix](https://github.com/AVIDS2/memorix)
+
+Memorix 的 Claude 和 Codex 插件都启动 `memorix serve --mode lite`，两端 hooks 可写入同一项目级 SQLite 数据库；只要 project identity 和 data directory 一致，两个客户端就能搜索共享的持久化记忆。它还提供 HTTP control plane，允许多个客户端复用同一服务进程。
+
+但官方 API 文档明确限定：shared memory 只是同一项目中可跨客户端搜索的已保存 memory，不是逐条镜像聊天消息。进程内 event bus 不是跨进程实时推送，跨进程一致性依靠 SQLite 轮询；session/handoff/context 是结构化注入，不是完整聊天恢复。导入导出也是额外迁移路径，不是正常同步机制。
+
+**判定：已确认共享项目记忆，范围受限。** 维护信号较好（v1.8.2 于 2026-08-25 发布），但官方仍标记部分 MCP 能力未实现，且开放 issue 涉及功能缺口；采用前应验证同一 project identity、并发写入、轮询延迟和目标版本 hooks。
+
 ### 5. 历史查看和导出
 
 viewer 可以读取多个客户端的本地 session、建立索引、搜索、统计、导出，甚至调用原 provider 的 resume 命令。但它通常不会把 Claude session 写成 Codex native session。
@@ -331,7 +351,15 @@ sx 偏向发现多个 agent 的历史、规范化、脱敏，以及 JSONL/HTML/M
 
 它不是跨 provider session bridge。GitHub 元数据中未声明 license，团队或商业采用前必须确认许可证。
 
-### 6.3 amux：运行控制面而不是记忆权威源
+### 6.3 session-exporter：只读历史汇总和离线导出
+
+项目：[p2o51/session-exporter](https://github.com/p2o51/session-exporter)
+
+它可以只读解析 Claude Code 与 Codex 各自的本地 JSONL，并导出 ZIP、Notion、JSON 或 Markdown。服务端提供查询和 export 接口，缓存也以只读解析为主；没有 import、resume、sync 或 memory 写回路径。
+
+**判定：历史查看/归档工具，非共享记忆、实时同步或跨 provider 续接适配器。** 适合集中搜索和离线备份，不应因为同时读取两端目录就列入同步方案。
+
+### 6.4 amux：运行控制面而不是记忆权威源
 
 项目：[mixpeek/amux](https://github.com/mixpeek/amux)
 
@@ -350,9 +378,10 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 5. **高 star ≠ 目标匹配。** 规则同步、viewer 和编排工具不能因为采用度高就进入会话迁移榜。
 6. **“支持 Codex”需要实现证据。** Codex TOML、plugin manifest、hooks、测试或明确配置比“支持任何 MCP client”的一句话更有证明力。
 7. **兼容文件共享不等于客户端同步。** 共享 Markdown、SQLite 或事件目录只能证明存在共同持久化介质；仍需分别验证 namespace、hooks、resume、并发写入和跨 provider 语义。
-8. **双端适配器不等于共享安全。** 云端 container、worktree、用户 namespace、保留策略和删除策略都要单独核验。
-9. **安全评分不等于绝对安全。** 本地 Git vault 也可能把 token、私钥和私人 transcript 写入历史；自动 hooks 也可能扩大上传范围。
-10. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
+8. **共享结构化后端不等于共享聊天记忆。** `memtrace` 和 Memorix 可以让 Claude/Codex 查询同一代码图、episodes、决策或项目记忆，但没有聊天全文自动合并或 native session resume 证据。
+9. **双端适配器不等于共享安全。** 云端 container、worktree、用户 namespace、保留策略和删除策略都要单独核验。
+10. **安全评分不等于绝对安全。** 本地 Git vault 也可能把 token、私钥和私人 transcript 写入历史；自动 hooks 也可能扩大上传范围。
+11. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
 
 ## 八、最终评分矩阵
 
@@ -393,6 +422,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 | 轻量 Markdown 规则 | `ai-rules-sync` | **7.0** |
 | 历史归档 | `sx` | **7.2** |
 | 多工具查看 | `AICoder Session Viewer` | **6.5** |
+| 只读历史汇总/离线导出 | `session-exporter` | — |
 | 并行运营控制面 | `amux` | **6.8** |
 
 分数是**类内采用分**，不能跨类别直接比较。例如 Rulesync 的 8.5 不代表它比会话迁移工具更能恢复 transcript，它根本不处理 transcript。
@@ -499,6 +529,8 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [mem-zero](https://github.com/sworcery/mem-zero)
 - [MemoryGraph](https://github.com/memory-graph/memory-graph)
 - [Cloudflare MCP Memory](https://github.com/beach55607-max/mcp-memory-server)
+- [memtrace](https://github.com/syncable-dev/memtrace-public)
+- [Memorix](https://github.com/AVIDS2/memorix)
 - [opencode-claude-memory](https://github.com/kuitos/opencode-claude-memory)
 - [opencode-claude-code-memory](https://github.com/kuitos/opencode-claude-code-memory)
 - [context-mode](https://github.com/mksglu/context-mode)
@@ -510,6 +542,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [AICoder Session Viewer](https://github.com/seastart/aicoder-session-viewer)
 - [Recensa](https://github.com/S40911120/recensa)
 - [sx](https://github.com/JacobLinCool/sx)
+- [session-exporter](https://github.com/p2o51/session-exporter)
 - [amux](https://github.com/mixpeek/amux)
 
 ## 最终判断
@@ -519,8 +552,9 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - 用 **Rulesync** 同步规则和 agent 配置；
 - 用 **Engram** 或经过数据治理的双端 memory adapter 同步项目长期知识；
 - 用 **hiShare** 或 `codex-plugin-cc` 处理明确触发的一次性任务交接；
-- 用 **sx**、AICoder Viewer 或 Recensa 搜索和审计历史；
+- 用 **sx**、AICoder Viewer、`session-exporter` 或 Recensa 搜索、导出和审计历史；其中 `session-exporter` 只读汇总，不提供导入或 resume；
 - 用 **amux** 管理并行 worker 和运行状态；
+- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库；两者都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
 - 把 `opencode-claude-memory` 视为 OpenCode 与 Claude 风格 Markdown 的兼容层，把 `context-mode` 视为显式统一数据目录后的持久化事件/快照后端，而不是 Claude↔Codex 原生同步器。
 
 真正决定能否采用的，不是 README 上的“支持 Claude/Codex”，而是目标版本上的 nonce round-trip、迁移 fixture、secret 检查、namespace 隔离、许可证和升级回归结果。
