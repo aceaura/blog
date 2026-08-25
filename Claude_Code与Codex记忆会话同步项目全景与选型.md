@@ -285,7 +285,7 @@ Engram 是 Go 单二进制，使用 SQLite + FTS5，并提供 CLI、HTTP API、T
 ### 4.3 Git vault 和项目 brain
 
 - **openwolf（7.5）**：使用 `.wolf` brain 保存修正、bug、项目图等，适合随 Git 传播。AGPL-3.0 可能阻断闭源产品或服务化嵌入。
-- **Agent Memory Vault（7.2）**：Git-backed Markdown source of truth，配合 SQLite/FTS、session claims、closeout 和 audit，适合团队审计；项目较新，并发写入和脱敏证据仍弱于 Engram。
+- **Agent Memory Vault（7.2）**：Git-backed Markdown source of truth，配合 SQLite/FTS、session claims、closeout 和 audit；在同一或已共享的文件系统、且两端按流程主动 retrieve/search 和 closeout 的前提下，适合团队审计和长期记忆。Claude 原生 auto-memory 仍独立，Git 主要提供本地历史/回滚，不是内建的跨机同步服务；项目较新，并发写入和脱敏证据仍弱于 Engram。
 - **mnemonic（7.1）**：Markdown/JSON + Git vault，适合事实、决策和踩坑；部署成本低，但 skill 层与各客户端不完全对称。
 - **memex（7.0）**：共享 `~/.memex/cards`，支持 Git sync，并提供 Claude plugin、Codex MCP 等入口；适合 cards/知识，不是完整会话恢复。
 - **mem-zero（7.0）**：自托管 streamable-HTTP MCP，同时提供 Claude 和 Codex 配置；自动保存依赖 `AGENTS.md`/`CLAUDE.md` 指示，agent 不遵守规则就不会自动写入。
@@ -440,7 +440,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 
 1. 本地优先：Engram。
 2. 云端自动 recall/capture：Mem0 或 Supermemory，先做数据处理审查和 nonce round-trip。
-3. Git 文档型：mnemonic、memex 或 Agent Memory Vault。
+3. Git 文档型：mnemonic、memex 或 Agent Memory Vault；Vault 需先确认共享文件系统/同步机制和两端的 retrieve/search、closeout 流程，不提供自动原生会话同步。
 4. 将记忆拆成项目事实、决策、踩坑、待办和交接摘要，不要把全部 raw transcript 直接当长期记忆。
 
 ### 场景 C：团队统一 agent 配置
