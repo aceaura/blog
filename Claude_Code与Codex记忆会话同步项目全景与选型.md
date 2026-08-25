@@ -65,7 +65,15 @@ handoff 通常只传递当前任务所需的摘要、目标、文件范围、约
 
 长期记忆不是完整会话。它通常不包含另一个客户端恢复执行所需的全部 tool call、tool output、附件、内部状态和 resume token。
 
-### 4. 历史查看和导出
+### 4. 兼容文件共享不等于客户端同步
+
+有些项目让 OpenCode 与 Claude Code 读写同一套 Claude 风格 Markdown 文件，或让 Claude Code 与 Codex 在显式统一数据目录后共享持久化事件/快照。这类方案可以减少重复配置或共享项目级上下文，但不代表实时同步、统一 auto-memory、跨 provider 原生恢复或双向 session converter。
+
+例如 [opencode-claude-memory](https://github.com/kuitos/opencode-claude-memory) 的代码主要读写 `$CLAUDE_CONFIG_DIR/projects/<project>/memory` 下的 Markdown，并通过 OpenCode plugin API 注入 system prompt；它没有 Codex adapter，也不访问 Claude Code/Codex 的原生 session API。它适合描述为“OpenCode 与 Claude 风格记忆文件兼容”，不应列入 Claude↔Codex 同步方案。
+
+[context-mode](https://github.com/mksglu/context-mode) 确有 Claude Code/Codex 两套适配器和同一 SessionDB/SQLite schema；设置 `CONTEXT_MODE_DATA_DIR` 后，两端可以落到同一持久化事件/快照目录。但其默认目录分开，Codex 平台支持仍是 Partial，Codex hook 的 resume 分支不能证明会从其他 session 自动 claim 快照，因此只能判定为“显式配置后的共享持久化后端”，不能宣称自动双向会话同步。
+
+### 5. 历史查看和导出
 
 viewer 可以读取多个客户端的本地 session、建立索引、搜索、统计、导出，甚至调用原 provider 的 resume 命令。但它通常不会把 Claude session 写成 Codex native session。
 
@@ -338,9 +346,10 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 4. **长期记忆 ≠ 原生会话迁移。** Engram、Mem0、Supermemory 和 Claude-Mem 保存的是结构化记忆、摘要或索引，不是另一客户端可继续的完整执行状态。
 5. **高 star ≠ 目标匹配。** 规则同步、viewer 和编排工具不能因为采用度高就进入会话迁移榜。
 6. **“支持 Codex”需要实现证据。** Codex TOML、plugin manifest、hooks、测试或明确配置比“支持任何 MCP client”的一句话更有证明力。
-7. **双端适配器不等于共享安全。** 云端 container、worktree、用户 namespace、保留策略和删除策略都要单独核验。
-8. **安全评分不等于绝对安全。** 本地 Git vault 也可能把 token、私钥和私人 transcript 写入历史；自动 hooks 也可能扩大上传范围。
-9. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
+7. **兼容文件共享不等于客户端同步。** 共享 Markdown、SQLite 或事件目录只能证明存在共同持久化介质；仍需分别验证 namespace、hooks、resume、并发写入和跨 provider 语义。
+8. **双端适配器不等于共享安全。** 云端 container、worktree、用户 namespace、保留策略和删除策略都要单独核验。
+9. **安全评分不等于绝对安全。** 本地 Git vault 也可能把 token、私钥和私人 transcript 写入历史；自动 hooks 也可能扩大上传范围。
+10. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
 
 ## 八、最终评分矩阵
 
@@ -486,6 +495,8 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [mem-zero](https://github.com/sworcery/mem-zero)
 - [MemoryGraph](https://github.com/memory-graph/memory-graph)
 - [Cloudflare MCP Memory](https://github.com/beach55607-max/mcp-memory-server)
+- [opencode-claude-memory](https://github.com/kuitos/opencode-claude-memory)
+- [context-mode](https://github.com/mksglu/context-mode)
 
 ### 规则、查看器和编排
 
@@ -504,6 +515,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - 用 **Engram** 或经过数据治理的双端 memory adapter 同步项目长期知识；
 - 用 **hiShare** 或 `codex-plugin-cc` 处理明确触发的一次性任务交接；
 - 用 **sx**、AICoder Viewer 或 Recensa 搜索和审计历史；
-- 用 **amux** 管理并行 worker 和运行状态。
+- 用 **amux** 管理并行 worker 和运行状态；
+- 把 `opencode-claude-memory` 视为 OpenCode 与 Claude 风格 Markdown 的兼容层，把 `context-mode` 视为显式统一数据目录后的持久化事件/快照后端，而不是 Claude↔Codex 原生同步器。
 
 真正决定能否采用的，不是 README 上的“支持 Claude/Codex”，而是目标版本上的 nonce round-trip、迁移 fixture、secret 检查、namespace 隔离、许可证和升级回归结果。
