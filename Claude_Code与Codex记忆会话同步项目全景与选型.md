@@ -103,6 +103,16 @@ memsearch 为 Claude Code 和 Codex 提供插件与 hooks：Stop hook 分别解�
 
 **判定：条件成立的共享持久化后端 + 共享 Markdown 约定，非实时聊天同步器。** v0.4.19 已发布且项目仍维护，但 PyPI/release 只证明发行状态，不证明跨客户端语义完整；采用前应验证同一 Git root、绝对路径哈希、collection、Milvus 模式、目录移动和双向 nonce round-trip。
 
+### 补充案例：claude-memory-mcp——共享历史证据索引，非双向 memory sync
+
+项目：[WhenMoon-afk/claude-memory-mcp](https://github.com/WhenMoon-afk/claude-memory-mcp)
+
+该项目为 Pi、OpenMemory/OMP、Claude Code project JSONL、Codex rollout JSONL 和 ChatGPT export 提供 adapter，把本地授权历史读入同一个可重建的 SQLite/FTS5 evidence projection；Claude Code 与 Codex 可分别注册同一个本地 stdio MCP，并通过 `moon cite_recall`、`moon cite_inspect` 和 `moon cite_status` 进行引用式历史召回。源码和协议文档明确：source files never written，默认只有 recall/inspect/status；learned-memory 四工具需要显式开启，并写入独立的 learned-memory SQLite，内容是 agent-authored interpretation，不会修改原始历史或 evidence index。
+
+它的 recall 先查现有索引，miss 时才做有界增量刷新；status refresh 也不是跨进程 event bus 或实时 push。因此它成立的是“多个客户端共享同一份本地历史派生索引和只读检索”，不是双向长期记忆同步、提示词兼容层、活动 transcript 镜像或 native session converter。项目仍在维护（v4.0.5 于 2026-08-19 发布），但采用前应确认各 adapter 的授权范围、同一 MCP 数据目录、增量刷新延迟和 learned-memory 是否需要显式启用。
+
+
+
 viewer 可以读取多个客户端的本地 session、建立索引、搜索、统计、导出，甚至调用原 provider 的 resume 命令。但它通常不会把 Claude session 写成 Codex native session。
 
 因此应分别验收：
@@ -285,20 +295,31 @@ Engram 是 Go 单二进制，使用 SQLite + FTS5，并提供 CLI、HTTP API、T
 
 优势：
 
-- 本地 SQLite 是权威源；
+- 同一机器、同一用户和同一 `ENGRAM_DATA_DIR` 下，Claude Code 与 Codex 的插件可连接同一个 SQLite 持久记忆后端；默认数据目录是 `~/.engram`；
 - FTS5 适合长期项目知识检索；
-- 有 Git sync，可把审查后的 `.engram/` chunks 带到另一台机器；
+- 有 Git-friendly sync，可把审查后的 `.engram/` chunks 带到另一台机器；
+- 可选 cloud autosync/continuous replication，但需要显式开通、token 和服务配置；
 - 客户端覆盖广，部署形态相对简单。
 
 边界：
 
+- 共享的是 observations、prompts 和结构化记忆，不是同一个 live session；两端各自创建 session，结束 hook 不会合并会话或广播完整 transcript；
 - 记忆质量依赖 agent 是否显式调用 `mem_save` 或 session summary；
+- Git sync 是导出/导入，默认启动 hook 的导入也不是实时双向同步，未看到 session-stop 自动 export；
 - stdio MCP 是主要 transport，不应假设存在可直接从 Docker 访问的 TCP MCP endpoint；
 - `engram serve` 默认只绑定 loopback；容器需要正确挂载 binary 和数据卷；
 - `.engram/` Git sync 前必须审查 API key、token 和私人 transcript；
-- 它不是 Claude/Codex native session converter。
+- 它不是 Claude/Codex native session converter；不同 Codex host/version 仍需单独验证 hooks。
 
-### 4.3 Git vault 和项目 brain
+### 4.3 TrueMemory：双端 hooks 写入同一持久记忆库，非实时会话同步
+
+项目：TrueMemory（仓库链接待补充）
+
+TrueMemory 为 Claude Code 和 Codex 注册同一个本地 MCP，并分别安装 SessionStart、UserPromptSubmit、SessionEnd/Stop 和 PreCompact hooks；默认数据库是 `~/.truememory/memories.db`，hooks 可以通过 `--db` 或环境变量覆盖。SessionStart 从数据库搜索并注入 `additionalContext`，Stop/SessionEnd 读取 transcript 后异步 ingest，因此在同一用户和同一 DB 路径下，双端共享真实持久化记忆后端，而不是只有 `CLAUDE.md`/`AGENTS.md` 提示词约定。
+
+**判定：共享持久化后端成立；实时会话同步不成立。** 两端仍是独立 session，记忆写入是异步的，不能镜像当前上下文、工具状态或 native resume；自定义 DB path/user_id 也可能造成分库。Codex adapter 的配置和 hook schema 仍需按目标版本验证，仓库测试主要验证 TOML/MCP/hook 配置，缺少 Claude↔Codex 端到端回归。当前文档还存在旧 flat `[[hooks]]` 示例，而源码已迁移到 nested hook schema；应优先使用 setup/doctor/smoke test，不要照旧手工配置。
+
+### 4.4 Git vault 和项目 brain
 
 - **openwolf（7.5）**：使用 `.wolf` brain 保存修正、bug、项目图等，适合随 Git 传播。AGPL-3.0 可能阻断闭源产品或服务化嵌入。
 - **Agent Memory Vault（7.2）**：Git-backed Markdown source of truth，配合 SQLite/FTS、session claims、closeout 和 audit；在同一或已共享的文件系统、且两端按流程主动 retrieve/search 和 closeout 的前提下，适合团队审计和长期记忆。Claude 原生 auto-memory 仍独立，Git 主要提供本地历史/回滚，不是内建的跨机同步服务；项目较新，并发写入和脱敏证据仍弱于 Engram。
@@ -401,6 +422,8 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 12. **PAXM 的共享 SQLite 不等于实时 transcript 同步。** 它依靠两端各自注册的 lifecycle hooks 和 MCP 读写共享结构化记忆；同一 config/data path 只解决后端一致性，不能证明完整上下文、工具内部状态或 native session 可以跨端恢复。
 13. **UniSessions 的 FTS5 检索和双向转换不等于实时同步。** 它从各 provider 的原生文件显式读取、转换并写入目标目录；MCP 只负责索引/搜索，data-fidelity 也明确不保留 tool calls、approval、sandbox 和 MCP runtime。
 14. **memsearch 的共享 Markdown 依赖项目身份和索引配置一致。** 同一仓库、同一绝对路径哈希、同一 collection 和 Milvus 模式未确认前，Claude 与 Codex 可能各写各的 `.memsearch` 目录或 collection；即使索引实时重建，也只是摘要文件变化，不是活动 transcript 同步。
+15. **派生历史索引不等于双向记忆同步。** `claude-memory-mcp` 将各客户端的授权历史读入可重建 SQLite/FTS5 projection，默认 MCP 工具只读召回；增量刷新和 learned-memory 都不代表修改源 transcript、实时推送或 native session 恢复。
+16. **Engram/TrueMemory 的持久化后端不等于 live session。** Engram 的同机共享、Git 导入/导出和可选云端复制，以及 TrueMemory 的 Stop/SessionEnd 异步 ingest，都只提供后续会话可召回的结构化记忆；两端仍各自维护 session，不能宣称完整上下文实时镜像或跨 provider resume。
 
 ## 八、最终评分矩阵
 
@@ -421,6 +444,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 | `Supermemory 双 adapter` | **7.0** | 云端 PoC/条件生产；先做隐私和 namespace 审查 |
 | `Claude-Mem` | **7.0** | Claude 强；Codex 条件试用 |
 | `PAXM` | — | 共享 SQLite + lifecycle hooks；尚未纳入本轮评分 |
+| `TrueMemory` | — | 共享 SQLite + 双端 hooks；需锁定 Codex hook schema 和版本 |
 
 ### 本地/自托管长期记忆
 
@@ -489,6 +513,8 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 6. 检查两端使用的是同一个 project/user namespace、container 和 worktree 隔离策略。
 7. 对 PAXM 等共享 SQLite 方案，额外确认两端插件都已注册 session start、user input、turn end hooks，实际使用同一 config/data path，并验证并发写入、读时刷新和错误重试。
 8. 对 memsearch 等共享 Markdown/索引方案，确认 Claude 与 Codex 解析到同一 Git root，collection 和绝对路径哈希一致；分别测试默认 Milvus Lite、远程 Milvus、目录移动、非 Git 目录和 watcher 延迟，排除双目录/双 collection。
+9. 对 `claude-memory-mcp` 等历史派生索引，确认各 adapter 的授权范围、共享 MCP 数据目录、源文件只读约束、miss 后增量刷新延迟，以及 learned-memory 是否显式开启；分别验证 Claude/Codex 的 citation recall，不将索引命中当作 native resume。
+10. 对 Engram/TrueMemory 等共享 SQLite 方案，分别验证默认与自定义 DB/data path、Claude/Codex MCP 和 hooks 是否真实注册；测试 Stop/SessionEnd 后异步 ingest 的可见延迟、重复写入、Codex nested hook schema、不同 host/version，以及两端各自 session 不会被误认为合并。
 
 ### 会话迁移 fixture
 
@@ -549,6 +575,9 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [PAXM Codex hook 配置](https://github.com/pax-beehive/paxm/blob/main/plugins/paxm-memory/hooks.json)
 - [PAXM cross-agent acceptance 记录](https://github.com/pax-beehive/paxm/blob/main/docs/evals/cross-agent/results/2026-07-11-tracer.md)
 - [Engram](https://github.com/Gentleman-Programming/engram)
+- TrueMemory（仓库链接待补充；本次核验基于其 adapter、hooks 和 release/PyPI 信息）
+- [OpenAI Codex hook 配置源码](https://github.com/openai/codex/blob/d52478c52ef09f001142a4b82339467c3880877f/codex-rs/config/src/hook_config.rs)
+- [OpenAI Codex hooks 配置文档](https://github.com/openai/codex/blob/d52478c52ef09f001142a4b82339467c3880877f/docs/config.md)
 - [openwolf](https://github.com/cytostack/openwolf)
 - [Agent Memory Vault](https://github.com/mcncarl/agent-memory-vault)
 - [mnemonic](https://github.com/danielmarbach/mnemonic)
@@ -565,6 +594,10 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [memsearch PyPI](https://pypi.org/project/memsearch/)
 - [memsearch releases](https://github.com/zilliztech/memsearch/releases)
 - [memsearch issue #631：项目目录/collection 分叉](https://github.com/zilliztech/memsearch/issues/631)
+- [claude-memory-mcp](https://github.com/WhenMoon-afk/claude-memory-mcp)
+- [claude-memory-mcp protocol](https://github.com/WhenMoon-afk/claude-memory-mcp/blob/main/docs/protocol.md)
+- [claude-memory-mcp releases](https://github.com/WhenMoon-afk/claude-memory-mcp/releases)
+- [claude-memory-mcp on Glama](https://glama.ai/mcp/servers/WhenMoon-afk/claude-memory-mcp)
 
 ### 规则、查看器和编排
 
@@ -585,7 +618,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - 用 **hiShare** 或 `codex-plugin-cc` 处理明确触发的一次性任务交接；
 - 用 **sx**、AICoder Viewer、`session-exporter` 或 Recensa 搜索、导出和审计历史；其中 `session-exporter` 只读汇总，不提供导入或 resume；
 - 用 **amux** 管理并行 worker 和运行状态；
-- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库，把 PAXM 视为共享 SQLite + lifecycle hooks 的结构化记忆后端，把 memsearch 视为依赖同一 Git root、Markdown 日志、collection 和 Milvus 配置的条件共享摘要记忆；这些方案都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
+- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库，把 PAXM 视为共享 SQLite + lifecycle hooks 的结构化记忆后端，把 TrueMemory 视为同一 DB 路径下由 Claude/Codex hooks 异步写入、后续会话召回的持久记忆后端，把 memsearch 视为依赖同一 Git root、Markdown 日志、collection 和 Milvus 配置的条件共享摘要记忆，把 `claude-memory-mcp` 视为多客户端共享本地历史的只读派生索引；这些方案都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
 - 把 `opencode-claude-memory` 视为 OpenCode 与 Claude 风格 Markdown 的兼容层，把 `context-mode` 视为显式统一数据目录后的持久化事件/快照后端，而不是 Claude↔Codex 原生同步器。
 
 真正决定能否采用的，不是 README 上的“支持 Claude/Codex”，而是目标版本上的 nonce round-trip、迁移 fixture、secret 检查、namespace 隔离、许可证和升级回归结果。
