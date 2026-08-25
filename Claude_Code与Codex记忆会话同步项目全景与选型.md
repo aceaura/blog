@@ -93,9 +93,15 @@ Memorix 的 Claude 和 Codex 插件都启动 `memorix serve --mode lite`，两�
 
 但官方 API 文档明确限定：shared memory 只是同一项目中可跨客户端搜索的已保存 memory，不是逐条镜像聊天消息。写入会递增数据库 generation，其他进程在读取时刷新索引；这不是 event bus 的跨进程实时推送，stdio 也不是自动的统一服务进程。session/handoff/context 是结构化注入，不是完整聊天恢复，导入导出是额外迁移路径而非正常同步机制。
 
-**判定：已确认共享项目记忆和会话记录后端，范围受限。** 维护信号较好（v1.8.2 于 2026-08-25 发布），但 npm latest 与主线可能存在版本差异，官方仍标记部分 MCP 能力未实现，且开放 issue 涉及功能缺口；采用前应锁定版本，验证同一 project identity、`projectRoot`/Git remote 绑定、并发写入、读时刷新延迟和目标版本 hooks。
+### 补充案例：memsearch——共享 Markdown 摘要记忆，配置不一致时会分叉
 
-### 5. 历史查看和导出
+项目：[zilliztech/memsearch](https://github.com/zilliztech/memsearch)
+
+memsearch 为 Claude Code 和 Codex 提供插件与 hooks：Stop hook 分别解析 Claude transcript 和 Codex rollout，将摘要追加到项目 `.memsearch/memory` 的 Markdown 日志，再调用 `memsearch index`；SessionStart 注入最近日志，`memory-recall` skill 可按需 search/expand。Markdown 是 source of truth，Milvus 只是可重建的 shadow index；默认使用 Milvus Lite，远程 Milvus/Server 模式才有按文件变化的 watcher 重索引。因此它共享的是摘要记忆和检索索引，不是活动会话、完整上下文或 native session。
+
+两端只有在 hooks 解析到同一 Git root、使用同一 `.memsearch` 配置和 collection，并且远程索引服务配置一致时，才可能交叉检索同一项目日志。非 Git 目录、`CLAUDE_PROJECT_DIR` 与 hook cwd 不一致、目录移动或默认 Lite 配置，都可能形成不同目录或 collection。公开 issue [#631](https://github.com/zilliztech/memsearch/issues/631) 记录了“two stores, two collections, no shared memory”的实际失败模式。
+
+**判定：条件成立的共享持久化后端 + 共享 Markdown 约定，非实时聊天同步器。** v0.4.19 已发布且项目仍维护，但 PyPI/release 只证明发行状态，不证明跨客户端语义完整；采用前应验证同一 Git root、绝对路径哈希、collection、Milvus 模式、目录移动和双向 nonce round-trip。
 
 viewer 可以读取多个客户端的本地 session、建立索引、搜索、统计、导出，甚至调用原 provider 的 resume 命令。但它通常不会把 Claude session 写成 Codex native session。
 
@@ -394,6 +400,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 11. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
 12. **PAXM 的共享 SQLite 不等于实时 transcript 同步。** 它依靠两端各自注册的 lifecycle hooks 和 MCP 读写共享结构化记忆；同一 config/data path 只解决后端一致性，不能证明完整上下文、工具内部状态或 native session 可以跨端恢复。
 13. **UniSessions 的 FTS5 检索和双向转换不等于实时同步。** 它从各 provider 的原生文件显式读取、转换并写入目标目录；MCP 只负责索引/搜索，data-fidelity 也明确不保留 tool calls、approval、sandbox 和 MCP runtime。
+14. **memsearch 的共享 Markdown 依赖项目身份和索引配置一致。** 同一仓库、同一绝对路径哈希、同一 collection 和 Milvus 模式未确认前，Claude 与 Codex 可能各写各的 `.memsearch` 目录或 collection；即使索引实时重建，也只是摘要文件变化，不是活动 transcript 同步。
 
 ## 八、最终评分矩阵
 
@@ -481,6 +488,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 5. 反向再测一次，确认 Codex 写入后 Claude 能召回。
 6. 检查两端使用的是同一个 project/user namespace、container 和 worktree 隔离策略。
 7. 对 PAXM 等共享 SQLite 方案，额外确认两端插件都已注册 session start、user input、turn end hooks，实际使用同一 config/data path，并验证并发写入、读时刷新和错误重试。
+8. 对 memsearch 等共享 Markdown/索引方案，确认 Claude 与 Codex 解析到同一 Git root，collection 和绝对路径哈希一致；分别测试默认 Milvus Lite、远程 Milvus、目录移动、非 Git 目录和 watcher 延迟，排除双目录/双 collection。
 
 ### 会话迁移 fixture
 
@@ -553,6 +561,10 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [opencode-claude-memory](https://github.com/kuitos/opencode-claude-memory)
 - [opencode-claude-code-memory](https://github.com/kuitos/opencode-claude-code-memory)
 - [context-mode](https://github.com/mksglu/context-mode)
+- [memsearch](https://github.com/zilliztech/memsearch)
+- [memsearch PyPI](https://pypi.org/project/memsearch/)
+- [memsearch releases](https://github.com/zilliztech/memsearch/releases)
+- [memsearch issue #631：项目目录/collection 分叉](https://github.com/zilliztech/memsearch/issues/631)
 
 ### 规则、查看器和编排
 
@@ -573,7 +585,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - 用 **hiShare** 或 `codex-plugin-cc` 处理明确触发的一次性任务交接；
 - 用 **sx**、AICoder Viewer、`session-exporter` 或 Recensa 搜索、导出和审计历史；其中 `session-exporter` 只读汇总，不提供导入或 resume；
 - 用 **amux** 管理并行 worker 和运行状态；
-- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库，把 PAXM 视为共享 SQLite + lifecycle hooks 的结构化记忆后端；三者都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
+- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库，把 PAXM 视为共享 SQLite + lifecycle hooks 的结构化记忆后端，把 memsearch 视为依赖同一 Git root、Markdown 日志、collection 和 Milvus 配置的条件共享摘要记忆；这些方案都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
 - 把 `opencode-claude-memory` 视为 OpenCode 与 Claude 风格 Markdown 的兼容层，把 `context-mode` 视为显式统一数据目录后的持久化事件/快照后端，而不是 Claude↔Codex 原生同步器。
 
 真正决定能否采用的，不是 README 上的“支持 Claude/Codex”，而是目标版本上的 nonce round-trip、迁移 fixture、secret 检查、namespace 隔离、许可证和升级回归结果。
