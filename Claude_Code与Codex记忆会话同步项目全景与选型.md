@@ -234,7 +234,15 @@ Claude 侧通过 marketplace 安装插件；Codex 侧通过 `npx codex-supermemo
 - project/user namespace；
 - 商业许可和数据处理条款。
 
-### 3.3 Claude-Mem：Claude 体验强，Codex 路径较新
+### 3.3 PAXM：同一 SQLite 后端加生命周期 hooks
+
+项目：[pax-beehive/paxm](https://github.com/pax-beehive/paxm)
+
+PAXM 为 Claude Code 和 Codex 提供独立插件与 hooks，两端通过同一 config/runtime/router 使用同一个 SQLite memory backend。Claude 的 hook 调用 `paxm __hook --target claude`，Codex 侧调用对应的 `--target codex`；两端都覆盖 session start、user input 和 turn end，可做 passive recall、写入和长期记忆保存。Codex 的 `UserPromptSubmit` 输出也符合官方 `additionalContext` hook envelope。项目 acceptance 文档记录了真实 Codex 任务中修复 hook JSON 后成功召回上下文，但这仍主要是仓库自测，不等同于独立端到端复现。
+
+**判定：共享持久化后端 + 生命周期 hook 的双端长期记忆，范围受限。** 两端必须安装插件、运行 setup，并使用同一 config/data path；默认 SQLite 路径是 `~/.local/share/paxm/memory.sqlite`，自定义 config 可能改变数据位置。它捕获的是 hooks 可见的事件和文本，不复制完整上下文、工具内部状态或实时 transcript，因此不是会话镜像、实时同步或 native session converter。维护状态仍在持续但活跃度一般（v0.2.6 于 2026-07-26 发布，之后有提交）；采用前应锁定版本并验证 hooks、同库隔离和召回质量。
+
+### 3.5 Claude-Mem：Claude 体验强，Codex 路径较新
 
 项目：[thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
 
@@ -382,6 +390,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 9. **双端适配器不等于共享安全。** 云端 container、worktree、用户 namespace、保留策略和删除策略都要单独核验。
 10. **安全评分不等于绝对安全。** 本地 Git vault 也可能把 token、私钥和私人 transcript 写入历史；自动 hooks 也可能扩大上传范围。
 11. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
+12. **PAXM 的共享 SQLite 不等于实时 transcript 同步。** 它依靠两端各自注册的 lifecycle hooks 和 MCP 读写共享结构化记忆；同一 config/data path 只解决后端一致性，不能证明完整上下文、工具内部状态或 native session 可以跨端恢复。
 
 ## 八、最终评分矩阵
 
@@ -401,6 +410,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 | `Mem0 官方插件` | **7.7** | 官方双端方案首选候选；先装 Codex hooks |
 | `Supermemory 双 adapter` | **7.0** | 云端 PoC/条件生产；先做隐私和 namespace 审查 |
 | `Claude-Mem` | **7.0** | Claude 强；Codex 条件试用 |
+| `PAXM` | — | 共享 SQLite + lifecycle hooks；尚未纳入本轮评分 |
 
 ### 本地/自托管长期记忆
 
@@ -467,6 +477,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 4. 用全新的 Codex 会话搜索 nonce。
 5. 反向再测一次，确认 Codex 写入后 Claude 能召回。
 6. 检查两端使用的是同一个 project/user namespace、container 和 worktree 隔离策略。
+7. 对 PAXM 等共享 SQLite 方案，额外确认两端插件都已注册 session start、user input、turn end hooks，实际使用同一 config/data path，并验证并发写入、读时刷新和错误重试。
 
 ### 会话迁移 fixture
 
@@ -521,6 +532,9 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [Claude Supermemory adapter](https://github.com/supermemoryai/claude-supermemory)
 - [Codex Supermemory adapter](https://github.com/supermemoryai/codex-supermemory)
 - [Claude-Mem](https://github.com/thedotmack/claude-mem)
+- [PAXM](https://github.com/pax-beehive/paxm)
+- [PAXM Codex hook 配置](https://github.com/pax-beehive/paxm/blob/main/plugins/paxm-memory/hooks.json)
+- [PAXM cross-agent acceptance 记录](https://github.com/pax-beehive/paxm/blob/main/docs/evals/cross-agent/results/2026-07-11-tracer.md)
 - [Engram](https://github.com/Gentleman-Programming/engram)
 - [openwolf](https://github.com/cytostack/openwolf)
 - [Agent Memory Vault](https://github.com/mcncarl/agent-memory-vault)
@@ -554,7 +568,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - 用 **hiShare** 或 `codex-plugin-cc` 处理明确触发的一次性任务交接；
 - 用 **sx**、AICoder Viewer、`session-exporter` 或 Recensa 搜索、导出和审计历史；其中 `session-exporter` 只读汇总，不提供导入或 resume；
 - 用 **amux** 管理并行 worker 和运行状态；
-- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库；两者都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
+- 把 `memtrace` 视为共享代码图/episodes/决策后端，把 Memorix 视为共享项目记忆库，把 PAXM 视为共享 SQLite + lifecycle hooks 的结构化记忆后端；三者都不是聊天全文实时合并或 Claude↔Codex 原生同步器；
 - 把 `opencode-claude-memory` 视为 OpenCode 与 Claude 风格 Markdown 的兼容层，把 `context-mode` 视为显式统一数据目录后的持久化事件/快照后端，而不是 Claude↔Codex 原生同步器。
 
 真正决定能否采用的，不是 README 上的“支持 Claude/Codex”，而是目标版本上的 nonce round-trip、迁移 fixture、secret 检查、namespace 隔离、许可证和升级回归结果。
