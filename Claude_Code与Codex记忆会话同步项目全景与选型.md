@@ -89,11 +89,11 @@ handoff 通常只传递当前任务所需的摘要、目标、文件范围、约
 
 项目：[AVIDS2/memorix](https://github.com/AVIDS2/memorix)
 
-Memorix 的 Claude 和 Codex 插件都启动 `memorix serve --mode lite`，两端 hooks 可写入同一项目级 SQLite 数据库；只要 project identity 和 data directory 一致，两个客户端就能搜索共享的持久化记忆。它还提供 HTTP control plane，允许多个客户端复用同一服务进程。
+Memorix 的 Claude 和 Codex 插件都启动 `memorix serve --mode lite`，两端可以打开同一个共享 SQLite 后端，并按归一化 Git project identity 过滤项目数据；默认数据目录是全局 `~/.memorix/data/`，并不等于把数据库物理存进 Git 项目目录，也可以用 `MEMORIX_DATA_DIR` 覆盖。只要两端绑定到同一 project identity 和 data directory，两个客户端就能搜索共享的持久化记忆；绑定错误、无 Git remote 或缺少明确 `projectRoot` 时可能串库或漏读。它还提供 HTTP control plane，允许多个客户端复用同一服务进程。
 
-但官方 API 文档明确限定：shared memory 只是同一项目中可跨客户端搜索的已保存 memory，不是逐条镜像聊天消息。进程内 event bus 不是跨进程实时推送，跨进程一致性依靠 SQLite 轮询；session/handoff/context 是结构化注入，不是完整聊天恢复。导入导出也是额外迁移路径，不是正常同步机制。
+但官方 API 文档明确限定：shared memory 只是同一项目中可跨客户端搜索的已保存 memory，不是逐条镜像聊天消息。写入会递增数据库 generation，其他进程在读取时刷新索引；这不是 event bus 的跨进程实时推送，stdio 也不是自动的统一服务进程。session/handoff/context 是结构化注入，不是完整聊天恢复，导入导出是额外迁移路径而非正常同步机制。
 
-**判定：已确认共享项目记忆，范围受限。** 维护信号较好（v1.8.2 于 2026-08-25 发布），但官方仍标记部分 MCP 能力未实现，且开放 issue 涉及功能缺口；采用前应验证同一 project identity、并发写入、轮询延迟和目标版本 hooks。
+**判定：已确认共享项目记忆和会话记录后端，范围受限。** 维护信号较好（v1.8.2 于 2026-08-25 发布），但 npm latest 与主线可能存在版本差异，官方仍标记部分 MCP 能力未实现，且开放 issue 涉及功能缺口；采用前应锁定版本，验证同一 project identity、`projectRoot`/Git remote 绑定、并发写入、读时刷新延迟和目标版本 hooks。
 
 ### 5. 历史查看和导出
 
