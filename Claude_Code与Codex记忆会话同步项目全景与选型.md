@@ -179,9 +179,11 @@ UniSessions 的 README 列出 Claude Code、Codex、Pi、OpenCode、Devin/Windsu
 
 **评分：5.4/10。**
 
-它的架构确实比单纯的 Markdown 转换脚本完整，但“README 中列出 56 个方向”不等于每个方向都经过目标 vendor 版本化 native-resume 回归。当前采用度低且没有 release，tool-call、compaction、附件、加密字段和私有元数据都可能出现降级。
+独立源码和 PyPI 0.2.0 wheel 交叉核验后，可以确认它的真实能力是显式 `claude-to-codex` / `codex-to-claude` 导入导出，以及基于本地 SQLite FTS5 的跨 provider 历史检索。MCP server 只提供 list、index status、refresh 和 search；转换器分别写入目标 provider 的目录，不建立共享持久化后端，也没有 watcher、event bus 或实时合并路径。
 
-**建议**：适合个人归档、实验室和批量格式探索；重要项目必须先复制源 store，完整 dry-run，抽样检查，再考虑 `--write`。
+官方 data-fidelity 说明将其限定为 text-history conversion：tool calls、approval、sandbox、MCP runtime 等运行时语义不会保留。因此，“README 中列出 56 个方向”不等于每个方向都经过目标 vendor 版本化 native-resume 回归；当前虽有近期维护信号，但项目仍处于新/Beta 阶段，导入后的可继续执行能力不能按完整恢复计算。
+
+**建议**：适合个人归档、实验室和批量格式探索；重要项目必须先复制源 store，完整 dry-run，抽样检查工具调用、附件、compaction 和 cwd，再考虑 `--write`。它应归类为显式历史转换器和检索器，不是实时同步器。
 
 ### 2.5 其他 handoff/bridge 项目应如何定位
 
@@ -391,6 +393,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 10. **安全评分不等于绝对安全。** 本地 Git vault 也可能把 token、私钥和私人 transcript 写入历史；自动 hooks 也可能扩大上传范围。
 11. **导出成功不等于恢复成功。** 必须单独测试 `/resume`、工具调用、附件、compaction 和工作树状态。
 12. **PAXM 的共享 SQLite 不等于实时 transcript 同步。** 它依靠两端各自注册的 lifecycle hooks 和 MCP 读写共享结构化记忆；同一 config/data path 只解决后端一致性，不能证明完整上下文、工具内部状态或 native session 可以跨端恢复。
+13. **UniSessions 的 FTS5 检索和双向转换不等于实时同步。** 它从各 provider 的原生文件显式读取、转换并写入目标目录；MCP 只负责索引/搜索，data-fidelity 也明确不保留 tool calls、approval、sandbox 和 MCP runtime。
 
 ## 八、最终评分矩阵
 
@@ -401,7 +404,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 | 1 | `openai/codex-plugin-cc` | **8.1** | Claude → Codex 受控试用 |
 | 2 | `hiShare` | **7.7** | 版本受控、安全优先 |
 | 3 | `claude-codex-switch` | **5.4** | 仅副本实验 |
-| 4 | `UniSessions` | **5.4** | 归档/转换 PoC |
+| 4 | `UniSessions` | **5.4** | 文本历史转换/检索 PoC；不保证 native resume |
 
 ### 双端自动长期记忆
 
@@ -520,6 +523,8 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [hiShare](https://github.com/harrychih/hiShare)
 - [claude-codex-switch](https://github.com/gitgoready/claude-codex-switch)
 - [UniSessions / session-export](https://github.com/vibheksoni/session-export)
+- [UniSessions PyPI](https://pypi.org/project/unisessions/)
+- [UniSessions 数据保真说明](https://github.com/vibheksoni/session-export/blob/main/docs/data-fidelity.md)
 - [claude-codex-mcp-bridge](https://github.com/WebisityStudio/claude-codex-mcp-bridge)
 - [claude-codex-mcp](https://github.com/maferick/claude-codex-mcp)
 - [plugin-handoff](https://github.com/ulpi-io/marketplace)
