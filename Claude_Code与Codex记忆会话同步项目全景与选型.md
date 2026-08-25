@@ -170,6 +170,7 @@ UniSessions 的 README 列出 Claude Code、Codex、Pi、OpenCode、Devin/Windsu
 - [plugin-handoff](https://github.com/ulpi-io/marketplace)：共享 handoff skill，传递 bounded task/context，不读取完整源 transcript。
 - [cc-plugin-codex](https://github.com/sendbird/cc-plugin-codex)：Codex 侧启动和跟踪 Claude subprocess，可 resume 最近 Claude task，属于宿主编排，不是 transcript converter。
 - [claude-codex-handoff](https://github.com/Fundryi/claude-codex-handoff)：`codex-plugin-cc` 的增强/可靠性 fork，默认权限可能使用 `danger-full-access`，必须先审查并收紧为最小权限。
+- [claude-session-port](https://github.com/TomSOhm/claude-session-port)：只打包和导回 Claude Code 自己的 JSONL/sidecar，以便跨机器尝试 `/resume`；没有 Codex adapter、共享后端或跨 provider 协议转换，不能列为 Claude↔Codex 同步方案。
 
 ## 三、双端自动长期记忆
 
@@ -479,6 +480,7 @@ amux 管理并行 Claude/Codex/Gemini worker、tmux、SQLite event journal、sch
 - [claude-codex-mcp-bridge](https://github.com/WebisityStudio/claude-codex-mcp-bridge)
 - [claude-codex-mcp](https://github.com/maferick/claude-codex-mcp)
 - [plugin-handoff](https://github.com/ulpi-io/marketplace)
+- [claude-session-port](https://github.com/TomSOhm/claude-session-port)
 
 ### 双端记忆和本地记忆
 
